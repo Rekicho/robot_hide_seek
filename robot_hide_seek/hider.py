@@ -16,7 +16,7 @@ class HideSeek(Node):
             qos_profile_sensor_data)
         self.publisher = self.create_publisher(
             Twist,
-            '/cmd_vel',
+            'hider/cmd_vel',
             10
         )
 
