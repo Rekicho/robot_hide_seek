@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<sdf version="1.5">
+    <model name="wall_4m">
+        <static>true</static>
+        <link name="link">
+        <collision name="collision">
+            <geometry>
+                <box>
+                    <!-- default thickness = 0.2  -->
+                    <!-- default width = 4.0  -->
+                    <!-- default height = 2.0  -->
+                    <size>4.0 0.2 2.0</size>
+                </box>
+            </geometry>
+        </collision>
+        <visual name="visual">
+            <cast_shadows>false</cast_shadows>
+            <geometry>
+            <box>
+                <size>4.0 0.2 2.0</size>
+            </box>
+            </geometry>
+            <material>
+                <ambient>1 0.0 0.0468 1</ambient>  
+                <diffuse>0.46 0.46 0.46 1.0</diffuse>  
+                <specular>0.5 0.5 0.5 128</specular>  
+                <emissive>0.46 0.46 0.46 1.0</emissive>  
+            </material>
+        </visual>
+        </link>
+    </model>
+</sdf>
