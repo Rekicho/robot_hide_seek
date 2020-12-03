@@ -13,12 +13,12 @@ class HideSeek(Node):
         super().__init__('hide_seek')
         self.subscription = self.create_subscription(
             LaserScan, 
-            '/hider/scan', 
+            '/seeker/scan', 
             self.lidar_callback,
             qos_profile_sensor_data)
         self.publisher = self.create_publisher(
             Twist,
-            '/hider/cmd_vel',
+            '/seeker/cmd_vel',
             10
         )
 
@@ -39,13 +39,13 @@ class HideSeek(Node):
             return
 
         vel = Twist()
-        vel.linear.x = 0.1
+        vel.linear.x = 0.2
         
         if min_angle < 180:
-            vel.angular.z = -radians(abs(min_angle - 360)) * 0.25
+            vel.angular.z = radians(abs(min_angle - 360)) * 0.25
 
         else:
-            vel.angular.z = radians(min_angle) * 0.25
+            vel.angular.z = -radians(min_angle) * 0.25
 
         self.publisher.publish(vel)
 

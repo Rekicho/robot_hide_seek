@@ -45,12 +45,12 @@
 
     <include>
       <uri>model://hider</uri>
-      <pose>-3.0 -3.0 0 0 0 0</pose>
+      <pose>-1.0 -1.0 0 0 0 0</pose>
     </include>
 
     <include>
       <uri>model://seeker</uri>
-      <pose>3.0 3.0 0 0 0 0</pose>
+      <pose>1.0 1.0 0 0 0 0</pose>
     </include>
 
   </world>
