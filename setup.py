@@ -24,7 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'hide_seek = robot_hide_seek.hide_seek:main'
+            'hider = robot_hide_seek.hider:main',
+            'seeker = robot_hide_seek.seeker:main'
         ],
     },
 )
