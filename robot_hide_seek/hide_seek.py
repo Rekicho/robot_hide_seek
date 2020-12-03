@@ -11,7 +11,7 @@ class HideSeek(Node):
         super().__init__('hide_seek')
         self.subscription = self.create_subscription(
             LaserScan, 
-            '/scan', 
+            '/hider/scan', 
             self.lidar_callback,
             qos_profile_sensor_data)
         self.publisher = self.create_publisher(

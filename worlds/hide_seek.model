@@ -44,30 +44,12 @@
     </physics>
 
     <include>
-      <name>hide1</name>
-      <uri>model://turtlebot3_burger</uri>
-      <param name="tf2_prefix" value="hide1" />
+      <uri>model://hider</uri>
       <pose>-3.0 -3.0 0 0 0 0</pose>
     </include>
 
     <include>
-      <name>hide2</name>
-      <uri>model://turtlebot3_burger</uri>
-      <param name="tf2_prefix" value="hide2" />
-      <pose>-3.0 3.0 0 0 0 0</pose>
-    </include>
-
-    <include>
-      <name>seek1</name>
-      <uri>model://turtlebot3_burger</uri>
-      <param name="tf2_prefix" value="seek1" />
-      <pose>3.0 -3.0 0 0 0 0</pose>
-    </include>
-
-    <include>
-      <name>seek2</name>
-      <uri>model://turtlebot3_burger</uri>
-      <param name="tf2_prefix" value="seek2" />
+      <uri>model://seeker</uri>
       <pose>3.0 3.0 0 0 0 0</pose>
     </include>
 

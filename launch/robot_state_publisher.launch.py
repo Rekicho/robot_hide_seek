@@ -48,7 +48,6 @@ def generate_launch_description():
             package='robot_state_publisher',
             node_executable='robot_state_publisher',
             node_name='robot_state_publisher',
-            namespace='hide_seek',
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}],
             arguments=[urdf]),

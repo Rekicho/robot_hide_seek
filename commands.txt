@@ -1,0 +1,11 @@
+Add to ~/.bashrc
+    source /opt/ros/foxy/setup.bash
+    export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/turtlebot3_ws/src/turtlebot3/turtlebot3_simulations/turtlebot3_gazebo/models:~/ros2_ws/src/robot_hide_seek/models
+    export TURTLEBOT3_MODEL=burger
+    source ~/turtlebot3_ws/install/setup.bash
+    export ROS_DOMAIN_ID=30 #TURTLEBOT3
+    source ~/ros2_ws/install/setup.bash
+
+Run:
+    colcon build
+    ros2 launch robot_hide_seek hide_seek.launch.py
