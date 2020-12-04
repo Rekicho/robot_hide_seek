@@ -4,23 +4,36 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
+from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
-class HideSeek(Node):
+from robot_hide_seek.utils import START_MSG
+
+class Seeker(Node):
     
     def __init__(self):
-        super().__init__('hide_seek')
-        self.subscription = self.create_subscription(
-            LaserScan, 
-            '/seeker/scan', 
-            self.lidar_callback,
-            qos_profile_sensor_data)
-        self.publisher = self.create_publisher(
-            Twist,
-            '/seeker/cmd_vel',
+        super().__init__('seeker')
+        self.game_sub = self.create_subscription(
+            String,
+            '/seeker/game',
+            self.game_callback,
             10
         )
+
+    def game_callback(self, msg):
+        if msg.data == START_MSG:
+            self.vel_pub = self.create_publisher(
+                Twist,
+                '/seeker/cmd_vel',
+                10
+            )
+            self.lidar_sub = self.create_subscription(
+                LaserScan, 
+                '/seeker/scan', 
+                self.lidar_callback,
+                qos_profile_sensor_data
+            )
 
     def lidar_callback(self, msg):
         min_range = msg.ranges[0]
@@ -32,8 +45,6 @@ class HideSeek(Node):
             if msg.ranges[i] < min_range:
                 min_range = msg.ranges[i]
                 min_angle = angle
-
-        print("Angle: " + str(min_angle) + "Range: " + str(min_range))
 
         if isinf(min_range):
             return
@@ -47,16 +58,16 @@ class HideSeek(Node):
         else:
             vel.angular.z = -radians(min_angle) * 0.25
 
-        self.publisher.publish(vel)
+        self.vel_pub.publish(vel)
 
 def main(args=None):
     rclpy.init(args=args)
 
-    hide_seek = HideSeek()
+    seeker = Seeker()
 
-    rclpy.spin(hide_seek)
+    rclpy.spin(seeker)
 
-    hide_seek.destroy_node()
+    seeker.destroy_node()
     rclpy.shutdown()
 
 
