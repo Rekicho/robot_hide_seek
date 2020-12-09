@@ -8,4 +8,8 @@ Add to ~/.bashrc
 
 Run:
     colcon build
+    ros2 topic list
     ros2 launch robot_hide_seek hide_seek.launch.py
+    ros2 run robot_hide_seek gazebo_controller
+    ros2 run robot_hide_seek
+    ros2 run robot_hide_seek
