@@ -11,6 +11,7 @@ from geometry_msgs.msg import Twist
 from robot_hide_seek.utils import *
 
 class Hider(Node):
+    follow_angle = 0
     
     def __init__(self):
         super().__init__('hider')
@@ -34,6 +35,12 @@ class Hider(Node):
                 self.lidar_callback,
                 qos_profile_sensor_data
             )
+            return
+
+        message = msg.data.split(' ')
+
+        if message[0] == 'Angle':
+            self.follow_angle = float(message[1])
 
     def lidar_callback(self, msg):
         min_range = msg.ranges[0]
@@ -51,6 +58,9 @@ class Hider(Node):
 
         vel = Twist()
         vel.linear.x = HIDER_LINEAR_SPEED
+
+        #Temporary
+        min_angle = degrees(self.follow_angle)
         
         if min_angle < 180:
             vel.angular.z = -radians(abs(min_angle - 360)) * 0.25
