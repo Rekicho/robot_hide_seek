@@ -8,7 +8,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
-from robot_hide_seek.utils import START_MSG
+from robot_hide_seek.utils import *
 
 class Seeker(Node):
     
@@ -50,7 +50,7 @@ class Seeker(Node):
             return
 
         vel = Twist()
-        vel.linear.x = 0.2
+        vel.linear.x = SEEKER_LINEAR_SPEED
         
         if min_angle < 180:
             vel.angular.z = radians(abs(min_angle - 360)) * 0.25
