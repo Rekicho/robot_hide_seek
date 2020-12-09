@@ -1,4 +1,4 @@
-from math import radians, degrees, isinf
+from math import radians, degrees, isinf, pi
 
 import rclpy
 from rclpy.node import Node
@@ -51,7 +51,7 @@ class Seeker(Node):
 
             if msg.ranges[i] < min_range:
                 min_range = msg.ranges[i]
-                min_angle = angle
+                min_angle = radians(angle)
 
         if isinf(min_range):
             return
@@ -60,13 +60,23 @@ class Seeker(Node):
         vel.linear.x = SEEKER_LINEAR_SPEED
 
         #Temporary
-        min_angle = degrees(self.follow_angle)
-        
-        if min_angle < 180:
-            vel.angular.z = radians(abs(min_angle - 360)) * 0.25
-
+        if min_range <= MIN_DISTANCE_TO_WALL:
+            if min_angle < 5 * pi / 8:
+                if min_angle < pi / 8:
+                    vel.linear.x = -SPEED_NEAR_WALL
+                elif min_angle < 3 * pi / 8:
+                    vel.linear.x = SPEED_NEAR_WALL
+                min_angle -= 5 * pi / 8
+            elif min_angle > 11 * pi / 8:
+                if min_angle > 15 * pi / 8:
+                    vel.linear.x = -SPEED_NEAR_WALL
+                elif min_angle > 13 * pi / 8:
+                    vel.linear.x = SPEED_NEAR_WALL
+                min_angle -= 11 * pi / 8
         else:
-            vel.angular.z = -radians(min_angle) * 0.25
+            min_angle = self.follow_angle
+
+        vel.angular.z = min_angle * TURN_RATIO
 
         self.vel_pub.publish(vel)
 

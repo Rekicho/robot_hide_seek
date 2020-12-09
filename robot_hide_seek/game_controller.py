@@ -91,16 +91,18 @@ class HideSeek(Node):
 
     def calc_angle_robots(self, r1_pos, r1_yaw, r2_pos):
         pos_angle = atan2(r2_pos[1] - r1_pos[1], r2_pos[0] - r1_pos[0])       
-
+        
         if pos_angle < 0:
             pos_angle = pos_angle + (2 * pi)
 
-        if pos_angle - r1_yaw > 2 * pi:
-            return pos_angle - r1_yaw - (2 * pi)
-
+        pos_angle = (pos_angle - r1_yaw) % (2 * pi)
+        
+        if pos_angle > pi:
+            return pos_angle - (2 * pi)
+        elif pos_angle < -pi:
+            return pos_angle + (2 * pi)
         else:
-            return pos_angle - r1_yaw
-    
+            return pos_angle
 
 
 def main(args=None):
