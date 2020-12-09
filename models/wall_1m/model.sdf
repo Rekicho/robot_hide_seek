@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <sdf version="1.5">
-    <model name="wall_4m">
+    <model name="wall_1m">
         <static>true</static>
         <link name="link">
         <collision name="collision">
@@ -9,7 +9,7 @@
                     <!-- default thickness = 0.2  -->
                     <!-- default width = 4.0  -->
                     <!-- default height = 2.0  -->
-                    <size>4.0 0.2 2.0</size>
+                    <size>1.0 0.02 0.5</size>
                 </box>
             </geometry>
         </collision>
@@ -17,7 +17,7 @@
             <cast_shadows>false</cast_shadows>
             <geometry>
             <box>
-                <size>4.0 0.2 2.0</size>
+                <size>1.0 0.02 0.5</size>
             </box>
             </geometry>
             <material>
