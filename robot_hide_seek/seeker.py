@@ -37,6 +37,9 @@ class Seeker(Node):
             )
             return
 
+        elif msg.data == GAMEOVER_MSG:
+            self.endgame()
+
         message = msg.data.split(' ')
 
         if message[0] == 'Angle':
@@ -66,19 +69,33 @@ class Seeker(Node):
                     vel.linear.x = -SPEED_NEAR_WALL
                 elif min_angle < 3 * pi / 8:
                     vel.linear.x = SPEED_NEAR_WALL
-                min_angle -= 5 * pi / 8
+
+                if self.follow_angle >= 0:
+                    min_angle -= 5 * pi / 8
+                else:
+                    min_angle += 5 * pi / 8
+
             elif min_angle > 11 * pi / 8:
                 if min_angle > 15 * pi / 8:
                     vel.linear.x = -SPEED_NEAR_WALL
                 elif min_angle > 13 * pi / 8:
                     vel.linear.x = SPEED_NEAR_WALL
                 min_angle -= 11 * pi / 8
+
+                if self.follow_angle >= 0:
+                    min_angle -= 11 * pi / 8
+                else:
+                    min_angle += 11 * pi / 8
         else:
-            min_angle = self.follow_angle
+            min_angle = self.follow_angle / TURN_RATIO
 
         vel.angular.z = min_angle * TURN_RATIO
 
         self.vel_pub.publish(vel)
+
+    def endgame(self):
+        self.vel_pub.publish(Twist())
+        exit()
 
 def main(args=None):
     rclpy.init(args=args)
