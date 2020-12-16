@@ -131,6 +131,7 @@ class HideSeek(Node):
         return False
 
     def endgame(self, msg='Game Over'):
+        print(msg)
         self.publish_str_msg(self.hider_pub,GAMEOVER_MSG)
         self.publish_str_msg(self.seeker_pub,GAMEOVER_MSG)
         exit(0)
