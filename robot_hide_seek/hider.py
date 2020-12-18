@@ -15,9 +15,14 @@ class Hider(Node):
     
     def __init__(self):
         super().__init__('hider')
+
+        self.declare_parameter('id')
+        id = self.get_parameter('id').value
+        self.node_topic = '/hider_' + str(id)
+
         self.game_sub = self.create_subscription(
             String,
-            '/hider/game',
+            self.node_topic + '/game',
             self.game_callback,
             10
         )
@@ -26,12 +31,12 @@ class Hider(Node):
         if msg.data == START_MSG:
             self.vel_pub = self.create_publisher(
                 Twist,
-                '/hider/cmd_vel',
+                self.node_topic + '/cmd_vel',
                 10
             )
             self.lidar_sub = self.create_subscription(
                 LaserScan, 
-                '/hider/scan', 
+                self.node_topic + '/scan', 
                 self.lidar_callback,
                 qos_profile_sensor_data
             )

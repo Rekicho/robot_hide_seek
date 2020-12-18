@@ -15,9 +15,14 @@ class Seeker(Node):
     
     def __init__(self):
         super().__init__('seeker')
+
+        self.declare_parameter('id')
+        id = self.get_parameter('id').value
+        self.node_topic = '/seeker_' + str(id)
+
         self.game_sub = self.create_subscription(
             String,
-            '/seeker/game',
+            self.node_topic + '/game',
             self.game_callback,
             10
         )
@@ -26,12 +31,12 @@ class Seeker(Node):
         if msg.data == START_MSG:
             self.vel_pub = self.create_publisher(
                 Twist,
-                '/seeker/cmd_vel',
+                self.node_topic + '/cmd_vel',
                 10
             )
             self.lidar_sub = self.create_subscription(
                 LaserScan, 
-                '/seeker/scan', 
+                self.node_topic + '/scan', 
                 self.lidar_callback,
                 qos_profile_sensor_data
             )

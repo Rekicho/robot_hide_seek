@@ -6,6 +6,7 @@ from rosgraph_msgs.msg import Clock
 from nav_msgs.msg import Odometry
 
 from math import atan2, pi, sqrt
+from functools import partial
 
 from robot_hide_seek.utils import *
 
@@ -13,41 +14,51 @@ class HideSeek(Node):
     
     def __init__(self):
         super().__init__('hide_seek')
+
+        self.declare_parameter('n_hiders')
+        self.n_hiders = self.get_parameter('n_hiders').value
+        self.declare_parameter('n_seekers')
+        self.n_seekers = self.get_parameter('n_seekers').value
         
         self.hider_started = False
         self.seeker_started = False
-        self.hider_pos = [0, 0, 0]
-        self.seeker_pos = [0, 0, 0]
-        self.hider_yaw = 0
-        self.seeker_yaw = 0
+
+        self.hider_pos = [[0, 0, 0] for i in range(self.n_hiders)]
+        self.seeker_pos = [[0, 0, 0] for i in range(self.n_seekers)]
+        self.hider_yaw = [0 for i in range(self.n_hiders)]
+        self.seeker_yaw = [[0, 0, 0] for i in range(self.n_seekers)]
 
         self.clock_sub = self.create_subscription(
             Clock, 
             '/clock', 
             self.clock_callback,
             10)
-        self.hider_pub = self.create_publisher(
+
+        self.hider_pub = [self.create_publisher(
             String,
-            '/hider/game',
+            '/hider_' + str(i) + '/game',
             10
-        )
-        self.seeker_pub = self.create_publisher(
+        ) for i in range(self.n_hiders)]
+
+        self.seeker_pub = [self.create_publisher(
             String,
-            '/seeker/game',
+            '/seeker_' + str(i) + '/game',
             10
-        )
-        self.hider_pos_sub = self.create_subscription(
+        ) for i in range(self.n_seekers)]
+
+        self.hider_pos_sub = [self.create_subscription(
             Odometry,
-            '/hider/odom',
-            self.hider_pos_callback,
+            '/hider_' + str(i) + '/odom',
+            partial(self.hider_pos_callback, i),
             10
-        )
-        self.seeker_pos_sub = self.create_subscription(
+        ) for i in range(self.n_hiders)]
+
+        self.seeker_pos_sub = [self.create_subscription(
             Odometry,
-            '/seeker/odom',
-            self.seeker_pos_callback,
+            '/seeker_' + str(i) + '/odom',
+            partial(self.seeker_pos_callback, i),
             10
-        )
+        ) for i in range(self.n_seekers)]
 
     def clock_callback(self, msg):
         if msg.clock.sec == SECONDS_HIDER_START and not self.hider_started:
@@ -65,61 +76,65 @@ class HideSeek(Node):
         publisher.publish(msg)
 
     def start_hider(self):
-        print("START HIDER")
+        print("START HIDERS")
         self.hider_started = True
-        self.publish_str_msg(self.hider_pub,START_MSG)
+
+        for pub in self.hider_pub:
+            self.publish_str_msg(pub,START_MSG)
 
     def start_seeker(self):
-        print("START SEEKER")
+        print("START SEEKERS")
         self.seeker_started = True
-        self.publish_str_msg(self.seeker_pub,START_MSG)
 
-    def hider_pos_callback(self, msg):
-        self.hider_pos = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
+        for pub in self.seeker_pub:
+            self.publish_str_msg(pub,START_MSG)
+
+    def hider_pos_callback(self, id, msg):
+        self.hider_pos[id] = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
         
         if self.check_gameover():
             self.endgame('Seeker wins')
         
-        self.hider_yaw = get_yaw(msg.pose.pose.orientation)
-        angle = calc_angle_robots(self.hider_pos,self.hider_yaw,self.seeker_pos)
+        self.hider_yaw[id] = get_yaw(msg.pose.pose.orientation)
+        angle = calc_angle_robots(self.hider_pos[id], self.hider_yaw[id], self.seeker_pos[id])
 
-        if can_see(angle, self.hider_pos, self.seeker_pos):
-            print("HIDER CAN SEE SEEKER")
-            self.publish_str_msg(self.hider_pub,"Angle " + str(angle))
+        if can_see(angle, self.hider_pos[id], self.seeker_pos[id]):
+            self.publish_str_msg(self.hider_pub[id], "Angle " + str(angle))
 
-    def seeker_pos_callback(self, msg):
-        self.seeker_pos = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
+    def seeker_pos_callback(self, id, msg):
+        self.seeker_pos[id] = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
         
         if self.check_gameover():
             self.endgame('Seeker wins')
 
-        self.seeker_yaw = get_yaw(msg.pose.pose.orientation)
-        angle = calc_angle_robots(self.seeker_pos,self.seeker_yaw,self.hider_pos)
+        self.seeker_yaw[id] = get_yaw(msg.pose.pose.orientation)
+        angle = calc_angle_robots(self.seeker_pos[id], self.seeker_yaw[id], self.hider_pos[id])
 
-        if can_see(angle, self.seeker_pos, self.hider_pos):
-            print("SEEKER CAN SEE HIDER")
-            self.publish_str_msg(self.seeker_pub,"Angle " + str(angle))
+        if can_see(angle, self.seeker_pos[id], self.hider_pos[id]):
+            self.publish_str_msg(self.seeker_pub[id], "Angle " + str(angle))
 
     def check_gameover(self):
-        return False #temporary
         if not(self.hider_started and self.seeker_started):
             return False
 
-        distance = sqrt(((self.hider_pos[0] - self.seeker_pos[0]) ** 2) + \
-                    ((self.hider_pos[1] - self.seeker_pos[1]) ** 2) \
-                    + ((self.hider_pos[2] - self.seeker_pos[2]) ** 2))
+        for hider_pos in self.hider_pos:
+            for seeker_pos in self.seeker_pos:
+                distance = sqrt(((hider_pos[0] - seeker_pos[0]) ** 2) + \
+                            ((hider_pos[1] - seeker_pos[1]) ** 2) \
+                            + ((hider_pos[2] - seeker_pos[2]) ** 2))
 
-        if distance <= DISTANCE_ENDGAME:
-            return True
+                if distance <= DISTANCE_ENDGAME:
+                    return True
 
         return False
 
-        
-
     def endgame(self, msg='Game Over'):
-        print(msg)
-        self.publish_str_msg(self.hider_pub,GAMEOVER_MSG)
-        self.publish_str_msg(self.seeker_pub,GAMEOVER_MSG)
+        for pub in self.hider_pub:
+            self.publish_str_msg(pub,GAMEOVER_MSG)
+
+        for pub in self.seeker_pub:
+            self.publish_str_msg(pub,GAMEOVER_MSG)
+
         exit(0)
 
 
