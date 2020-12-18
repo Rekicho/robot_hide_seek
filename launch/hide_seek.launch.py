@@ -24,13 +24,12 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import ThisLaunchFileDir
 from launch.actions import ExecuteProcess
-from launch.substitutions import LaunchConfiguration, EnvironmentVariable
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='True')
-    #world_file_name = EnvironmentVariable('HIDE_SEEK_WORLD')
-    world_file_name = 'hide_seek_2x2.model'
+    world_file_name = os.environ['HIDE_SEEK_WORLD']
     world = os.path.join(get_package_share_directory('robot_hide_seek'), 'worlds', world_file_name)
     launch_file_dir = os.path.join(get_package_share_directory('robot_hide_seek'), 'launch')
 

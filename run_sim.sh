@@ -1,29 +1,29 @@
 #!/bin/sh
 
-# if [ "$#" -eq 0 ]; then
-#     echo "Running default world: 2x2"
-#     export HIDE_SEEK_WORLD="hide_seek_2x2.model"
-# elif [ "$#" -eq 1 ] || [ "$#" -ne 2 ]; then
-#     echo "Invalid number of arguments.\nUsage: $0 <hiders> <seekers>"
-#     exit 1
-# elif [ "$1" -eq 1 ] && [ "$2" -eq 3 ]; then
-#     echo "Running world: 1x3"
-#     export HIDE_SEEK_WORLD="hide_seek_1x3.model"
-# elif [ "$1" -eq 2 ] && [ "$2" -eq 2 ]; then
-#     echo "Running world: 2x2"
-#     export HIDE_SEEK_WORLD="hide_seek_2x2.model"
-# elif [ "$1" -eq 3 ] && [ "$2" -eq 1 ]; then
-#     echo "Running world: 3x1"
-#     export HIDE_SEEK_WORLD="hide_seek_3x1.model"
-# elif [ "$1" -eq 3 ] && [ "$2" -eq 3 ]; then
-#     echo "Running world: 3x3"
-#     export HIDE_SEEK_WORLD="hide_seek_3x3.model"
-# else
-#     echo "Invalid number of hiders & seekers.\nUsage: $0 <hiders> <seekers>"
-#     echo "List:\n $0 2 2 (default)"
-#     echo " $0 1 3"
-#     echo " $0 3 1"
-#     echo " $0 3 3"
-# fi
+if [ "$#" -eq 0 ]; then
+    echo "Running default world: 2x2"
+    export HIDE_SEEK_WORLD="hide_seek_2x2.model"
+elif [ "$#" -eq 1 ] || [ "$#" -ne 2 ]; then
+    echo "Invalid number of arguments.\nUsage: $0 <hiders> <seekers>"
+    exit 1
+elif [ "$1" -eq 1 ] && [ "$2" -eq 3 ]; then
+    echo "Running world: 1x3"
+    export HIDE_SEEK_WORLD="hide_seek_1x3.model"
+elif [ "$1" -eq 2 ] && [ "$2" -eq 2 ]; then
+    echo "Running world: 2x2"
+    export HIDE_SEEK_WORLD="hide_seek_2x2.model"
+elif [ "$1" -eq 3 ] && [ "$2" -eq 1 ]; then
+    echo "Running world: 3x1"
+    export HIDE_SEEK_WORLD="hide_seek_3x1.model"
+elif [ "$1" -eq 3 ] && [ "$2" -eq 3 ]; then
+    echo "Running world: 3x3"
+    export HIDE_SEEK_WORLD="hide_seek_3x3.model"
+else
+    echo "Invalid number of hiders & seekers.\nUsage: $0 <hiders> <seekers>"
+    echo "List:\n $0 2 2 (default)"
+    echo " $0 1 3"
+    echo " $0 3 1"
+    echo " $0 3 3"
+fi
 
 ros2 launch robot_hide_seek hide_seek.launch.py
