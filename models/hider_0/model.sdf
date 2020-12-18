@@ -33,7 +33,7 @@
         <pose>-0.032 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://robo_meshes/burger_base.dae</uri>
+            <uri>model://robo_meshes/burger_base_hider.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
         </geometry>
