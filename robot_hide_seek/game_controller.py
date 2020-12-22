@@ -28,6 +28,8 @@ class HideSeek(Node):
         self.hider_yaw = [0 for i in range(self.n_hiders)]
         self.seeker_yaw = [[0, 0, 0] for i in range(self.n_seekers)]
 
+        self.time = -1
+
         self.clock_sub = self.create_subscription(
             Clock, 
             '/clock', 
@@ -61,6 +63,19 @@ class HideSeek(Node):
         ) for i in range(self.n_seekers)]
 
     def clock_callback(self, msg):
+        if int(msg.clock.sec) < self.time:
+            self.hider_started = False
+            self.seeker_started = False
+            self.hider_pos = [[0, 0, 0] for i in range(self.n_hiders)]
+            self.seeker_pos = [[0, 0, 0] for i in range(self.n_seekers)]
+            self.hider_yaw = [0 for i in range(self.n_hiders)]
+            self.seeker_yaw = [[0, 0, 0] for i in range(self.n_seekers)]
+            self.time = -1
+
+        else:
+            self.time = int(msg.clock.sec)
+
+
         if msg.clock.sec == SECONDS_HIDER_START and not self.hider_started:
             self.start_hider()
 

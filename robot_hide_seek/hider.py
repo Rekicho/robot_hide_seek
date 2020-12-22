@@ -5,6 +5,7 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
 from std_msgs.msg import String
+from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
@@ -14,6 +15,7 @@ class Hider(Node):
     follow_id = inf
     follow_distance = inf
     follow_angle = inf
+    time = -1
     
     def __init__(self):
         super().__init__('hider')
@@ -28,6 +30,30 @@ class Hider(Node):
             self.game_callback,
             10
         )
+
+        self.clock_sub = self.create_subscription(
+            Clock, 
+            '/clock', 
+            self.clock_callback,
+            10
+        )
+
+    def clock_callback(self, msg):
+        if int(msg.clock.sec) < self.time:
+            self.follow_id = inf
+            self.follow_distance = inf
+            self.follow_angle = inf
+            self.time = -1
+            
+            try:
+                self.vel_pub
+            except AttributeError:
+                pass
+            else:
+                self.destroy_publisher(self.vel_pub)
+                self.destroy_subscription(self.lidar_sub)
+
+        else: self.time = int(msg.clock.sec)
 
     def game_callback(self, msg):
         if msg.data == START_MSG:
@@ -123,7 +149,7 @@ class Hider(Node):
     def endgame(self):
         try:
             self.vel_pub
-        except NameError:
+        except AttributeError:
             exit()
         else:
             self.vel_pub.publish(Twist())
