@@ -5,7 +5,7 @@ from std_msgs.msg import String
 from rosgraph_msgs.msg import Clock
 from nav_msgs.msg import Odometry
 
-from math import atan2, pi, sqrt
+import math
 from functools import partial
 
 from robot_hide_seek.utils import *
@@ -91,42 +91,69 @@ class HideSeek(Node):
 
     def hider_pos_callback(self, id, msg):
         self.hider_pos[id] = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
-        
+        self.hider_yaw[id] = get_yaw(msg.pose.pose.orientation)
+
         if self.check_gameover():
             self.endgame('Seeker wins')
-        
-        self.hider_yaw[id] = get_yaw(msg.pose.pose.orientation)
-        angle = calc_angle_robots(self.hider_pos[id], self.hider_yaw[id], self.seeker_pos[id])
 
-        if can_see(angle, self.hider_pos[id], self.seeker_pos[id]):
-            self.publish_str_msg(self.hider_pub[id], "Angle " + str(angle))
+        message = 'POSITIONS\n\n'
+
+        for i in range(self.n_seekers):
+            angle = calc_angle_robots(self.hider_pos[id], self.hider_yaw[id], self.seeker_pos[i])
+            
+            if can_see(angle, self.hider_pos[id], self.seeker_pos[i]):
+                distance = calc_distance(self.hider_pos[id], self.seeker_pos[i])
+
+                message += 'Angle: ' + str(angle) + '\nDistance: ' + str(distance) + '\n\n'
+                
+            else:
+                message += 'Angle: ' + str(math.inf) + '\nDistance: ' + str(math.inf) + '\n\n'
+            
+        self.publish_str_msg(self.hider_pub[id], message)
 
     def seeker_pos_callback(self, id, msg):
         self.seeker_pos[id] = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
-        
+        self.seeker_yaw[id] = get_yaw(msg.pose.pose.orientation)
+
         if self.check_gameover():
             self.endgame('Seeker wins')
 
-        self.seeker_yaw[id] = get_yaw(msg.pose.pose.orientation)
-        angle = calc_angle_robots(self.seeker_pos[id], self.seeker_yaw[id], self.hider_pos[id])
+        message = POSITIONS_MSG_HEADER + '\n\n'
 
-        if can_see(angle, self.seeker_pos[id], self.hider_pos[id]):
-            self.publish_str_msg(self.seeker_pub[id], "Angle " + str(angle))
+        for i in range(self.n_hiders):
+            angle = calc_angle_robots(self.seeker_pos[id], self.seeker_yaw[id], self.hider_pos[i])
+            
+            if can_see(angle, self.seeker_pos[id], self.hider_pos[i]):
+                distance = calc_distance(self.seeker_pos[id], self.hider_pos[i])
+
+                message += 'Angle: ' + str(angle) + '\nDistance: ' + str(distance) + '\n\n'
+                
+            else:
+                message += 'Angle: ' + str(math.inf) + '\nDistance: ' + str(math.inf) + '\n\n'
+            
+        self.publish_str_msg(self.seeker_pub[id], message)
 
     def check_gameover(self):
         if not(self.hider_started and self.seeker_started):
             return False
 
-        for hider_pos in self.hider_pos:
-            for seeker_pos in self.seeker_pos:
-                distance = sqrt(((hider_pos[0] - seeker_pos[0]) ** 2) + \
-                            ((hider_pos[1] - seeker_pos[1]) ** 2) \
-                            + ((hider_pos[2] - seeker_pos[2]) ** 2))
+        gameover = True
+
+        for seeker_pos in self.seeker_pos:
+            found = False
+
+            for hider_pos in self.hider_pos:
+                distance = calc_distance(hider_pos, seeker_pos)
 
                 if distance <= DISTANCE_ENDGAME:
-                    return True
-
-        return False
+                    found = True
+                    break
+            
+            if not found:
+                gameover = False
+                break
+        
+        return gameover
 
     def endgame(self, msg='Game Over'):
         for pub in self.hider_pub:

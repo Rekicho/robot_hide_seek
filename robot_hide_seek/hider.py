@@ -1,4 +1,4 @@
-from math import radians, degrees, isinf, pi
+from math import radians, degrees, isinf, pi, inf
 
 import rclpy
 from rclpy.node import Node
@@ -11,7 +11,9 @@ from geometry_msgs.msg import Twist
 from robot_hide_seek.utils import *
 
 class Hider(Node):
-    follow_angle = 0
+    follow_id = inf
+    follow_distance = inf
+    follow_angle = inf
     
     def __init__(self):
         super().__init__('hider')
@@ -45,10 +47,22 @@ class Hider(Node):
         elif msg.data == GAMEOVER_MSG:
             self.endgame()
 
-        message = msg.data.split(' ')
+        message = msg.data.rstrip().split('\n\n')
 
-        if message[0] == 'Angle':
-            self.follow_angle = float(message[1])
+        if message[0] == POSITIONS_MSG_HEADER:
+            angles = [float(pos.split('\n')[0][7:]) for pos in message[1:]]
+            distances = [float(pos.split('\n')[1][10:]) for pos in message[1:]]
+
+            closest = (inf, inf)
+
+            for i, dist in enumerate(distances):
+                if dist < closest[1]:
+                    closest = (i, dist)
+
+            if not isinf(closest[0]):
+                self.follow_id = closest[0]
+                self.follow_angle = angles[self.follow_id]
+                self.follow_distance = closest[1]
 
     def lidar_callback(self, msg):
         min_range = msg.ranges[0]
@@ -75,10 +89,11 @@ class Hider(Node):
                 elif min_angle < 3 * pi / 8:
                     vel.linear.x = SPEED_NEAR_WALL
                 
-                if self.follow_angle >= 0:
-                    min_angle += 5 * pi / 8
-                else:
-                    min_angle -= 5 * pi / 8
+                if not isinf(self.follow_angle):
+                    if self.follow_angle >= 0:
+                        min_angle += 5 * pi / 8
+                    else:
+                        min_angle -= 5 * pi / 8
                     
             elif min_angle > 11 * pi / 8:
                 if min_angle > 15 * pi / 8:
@@ -86,12 +101,15 @@ class Hider(Node):
                 elif min_angle > 13 * pi / 8:
                     vel.linear.x = SPEED_NEAR_WALL
                 
-                if self.follow_angle >= 0:
-                    min_angle += 11 * pi / 8
-                else:
-                    min_angle -= 11 * pi / 8
+                if not isinf(self.follow_angle):
+                    if self.follow_angle >= 0:
+                        min_angle += 11 * pi / 8
+                    else:
+                        min_angle -= 11 * pi / 8
         else:
-            min_angle = self.follow_angle
+            if not isinf(self.follow_angle):
+                min_angle = self.follow_angle
+
             if min_angle > 0:
                 min_angle -= pi
             else:
@@ -103,8 +121,13 @@ class Hider(Node):
         self.vel_pub.publish(vel)
 
     def endgame(self):
-        self.vel_pub.publish(Twist())
-        exit()
+        try:
+            self.vel_pub
+        except NameError:
+            exit()
+        else:
+            self.vel_pub.publish(Twist())
+            exit()
 
 def main(args=None):
     rclpy.init(args=args)

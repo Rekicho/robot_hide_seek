@@ -1,4 +1,4 @@
-from math import radians, degrees, isinf, pi
+from math import radians, degrees, isinf, pi, inf
 
 import rclpy
 from rclpy.node import Node
@@ -11,7 +11,11 @@ from geometry_msgs.msg import Twist
 from robot_hide_seek.utils import *
 
 class Seeker(Node):
-    follow_angle = 0
+    follow_id = inf
+    follow_distance = inf
+    follow_angle = inf
+    angles = []
+    distances = []
     
     def __init__(self):
         super().__init__('seeker')
@@ -24,6 +28,17 @@ class Seeker(Node):
             String,
             self.node_topic + '/game',
             self.game_callback,
+            10
+        )
+        self.seeker_coord_sub = self.create_subscription(
+            String,
+            '/seekers',
+            self.coord_callback,
+            10
+        )
+        self.seeker_coord_pub = self.create_publisher(
+            String,
+            '/seekers',
             10
         )
 
@@ -45,10 +60,41 @@ class Seeker(Node):
         elif msg.data == GAMEOVER_MSG:
             self.endgame()
 
-        message = msg.data.split(' ')
+        message = msg.data.rstrip().split('\n\n')
 
-        if message[0] == 'Angle':
-            self.follow_angle = float(message[1])
+        if message[0] == POSITIONS_MSG_HEADER:
+            self.angles = [float(pos.split('\n')[0][7:]) for pos in message[1:]]
+            self.distances = [float(pos.split('\n')[1][10:]) for pos in message[1:]]
+
+            if self.seeker_coord_pub:
+                self.share_distances()
+
+    def share_distances(self):
+        msg = String()
+
+        for dist in self.distances:
+            msg.data += str(dist) + '\n'
+
+        self.seeker_coord_pub.publish(msg)
+
+    def coord_callback(self, msg):
+        other_distances = msg.data.rstrip().split('\n')
+
+        if len(other_distances) > len(self.distances):
+            return
+        
+        min_difference = (inf, inf)
+
+        for i, distance in enumerate(other_distances):
+            diff = self.distances[i] - float(distance)
+
+            if diff < min_difference[1]:
+                min_difference = (i, diff)
+
+        if not isinf(min_difference[0]):
+            self.follow_id = min_difference[0]
+            self.follow_angle = self.angles[min_difference[0]]
+            self.follow_distance = self.distances[min_difference[0]]
 
     def lidar_callback(self, msg):
         min_range = msg.ranges[0]
@@ -75,10 +121,11 @@ class Seeker(Node):
                 elif min_angle < 3 * pi / 8:
                     vel.linear.x = SPEED_NEAR_WALL
 
-                if self.follow_angle >= 0:
-                    min_angle -= 5 * pi / 8
-                else:
-                    min_angle += 5 * pi / 8
+                if not isinf(self.follow_angle):
+                    if self.follow_angle >= 0:
+                        min_angle -= 5 * pi / 8
+                    else:
+                        min_angle += 5 * pi / 8
 
             elif min_angle > 11 * pi / 8:
                 if min_angle > 15 * pi / 8:
@@ -87,20 +134,27 @@ class Seeker(Node):
                     vel.linear.x = SPEED_NEAR_WALL
                 min_angle -= 11 * pi / 8
 
-                if self.follow_angle >= 0:
-                    min_angle -= 11 * pi / 8
-                else:
-                    min_angle += 11 * pi / 8
+                if not isinf(self.follow_angle):
+                    if self.follow_angle >= 0:
+                        min_angle -= 11 * pi / 8
+                    else:
+                        min_angle += 11 * pi / 8
         else:
-            min_angle = self.follow_angle / TURN_RATIO
+            if not isinf(self.follow_angle):
+                min_angle = self.follow_angle / TURN_RATIO
 
         vel.angular.z = min_angle * TURN_RATIO
 
         self.vel_pub.publish(vel)
 
     def endgame(self):
-        self.vel_pub.publish(Twist())
-        exit()
+        try:
+            self.vel_pub
+        except NameError:
+            exit()
+        else:
+            self.vel_pub.publish(Twist())
+            exit()
 
 def main(args=None):
     rclpy.init(args=args)

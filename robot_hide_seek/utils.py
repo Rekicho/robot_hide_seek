@@ -3,6 +3,7 @@ from transformations import euler_from_quaternion
 
 START_MSG = 'START'
 GAMEOVER_MSG = 'GAMEOVER'
+POSITIONS_MSG_HEADER = 'POSITIONS'
 HIDER_LINEAR_SPEED = 0.25
 SEEKER_LINEAR_SPEED = 0.2
 SECONDS_HIDER_START = 0
@@ -88,3 +89,8 @@ def can_see(angle, pos1, pos2):
             return False
 
     return True    
+
+def calc_distance(pos1, pos2):
+    return sqrt(((pos1[0] - pos2[0]) ** 2) + \
+                ((pos1[1] - pos2[1]) ** 2) + \
+                ((pos1[2] - pos2[2]) ** 2))
