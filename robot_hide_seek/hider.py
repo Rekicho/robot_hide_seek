@@ -16,6 +16,7 @@ class Hider(Node):
     follow_distance = inf
     follow_angle = inf
     time = -1
+    gameover = True
     
     def __init__(self):
         super().__init__('hider')
@@ -37,40 +38,35 @@ class Hider(Node):
             self.clock_callback,
             10
         )
+        self.vel_pub = self.create_publisher(
+            Twist,
+            self.node_topic + '/cmd_vel',
+            10
+        )
+        self.lidar_sub = self.create_subscription(
+            LaserScan, 
+            self.node_topic + '/scan', 
+            self.lidar_callback,
+            qos_profile_sensor_data
+        )
+
+    def reset(self):
+        self.follow_id = inf
+        self.follow_distance = inf
+        self.follow_angle = inf
 
     def clock_callback(self, msg):
         if int(msg.clock.sec) < self.time:
-            self.follow_id = inf
-            self.follow_distance = inf
-            self.follow_angle = inf
-            self.time = -1
-            
-            try:
-                self.vel_pub
-            except AttributeError:
-                pass
-            else:
-                self.destroy_publisher(self.vel_pub)
-                self.destroy_subscription(self.lidar_sub)
+            self.gameover = False
+            self.reset()
 
-        else: self.time = int(msg.clock.sec)
+        self.time = int(msg.clock.sec)
 
     def game_callback(self, msg):
         if msg.data == START_MSG:
-            self.vel_pub = self.create_publisher(
-                Twist,
-                self.node_topic + '/cmd_vel',
-                10
-            )
-            self.lidar_sub = self.create_subscription(
-                LaserScan, 
-                self.node_topic + '/scan', 
-                self.lidar_callback,
-                qos_profile_sensor_data
-            )
             return
 
-        elif msg.data == GAMEOVER_MSG:
+        if msg.data == GAMEOVER_MSG:
             self.endgame()
 
         message = msg.data.rstrip().split('\n\n')
@@ -91,6 +87,9 @@ class Hider(Node):
                 self.follow_distance = closest[1]
 
     def lidar_callback(self, msg):
+        if self.time < SECONDS_HIDER_START or self.gameover:
+            return
+
         min_range = msg.ranges[0]
         min_angle = msg.angle_min
 
@@ -146,14 +145,9 @@ class Hider(Node):
 
         self.vel_pub.publish(vel)
 
-    def endgame(self):
-        try:
-            self.vel_pub
-        except AttributeError:
-            exit()
-        else:
-            self.vel_pub.publish(Twist())
-            exit()
+    def endgame(self):  
+        self.gameover = True      
+        self.vel_pub.publish(Twist())
 
 def main(args=None):
     rclpy.init(args=args)

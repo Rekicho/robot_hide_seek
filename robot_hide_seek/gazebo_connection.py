@@ -13,10 +13,10 @@ class GazeboConnection():
         self.reset_proxy = self.node.create_client(Empty, '/reset_simulation')
     
     def pauseSim(self):
-        self.pause.call(Empty_Request())
+        self.pause.call_async(Empty_Request())
         
     def unpauseSim(self):
-        self.unpause.call(Empty_Request())
+        self.unpause.call_async(Empty_Request())
         
     def resetSim(self):
-        self.reset_proxy.call(Empty_Request())
+        self.reset_proxy.call_async(Empty_Request())

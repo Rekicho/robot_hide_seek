@@ -26,7 +26,8 @@ setup(
         'console_scripts': [
             'hider = robot_hide_seek.hider:main',
             'seeker = robot_hide_seek.seeker:main',
-            'game_controller = robot_hide_seek.game_controller:main'
+            'game_controller = robot_hide_seek.game_controller:main',
+            'train_hider = robot_hide_seek.train_hider:main'
         ],
     },
 )

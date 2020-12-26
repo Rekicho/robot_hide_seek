@@ -70,19 +70,16 @@ class HideSeek(Node):
             self.seeker_pos = [[0, 0, 0] for i in range(self.n_seekers)]
             self.hider_yaw = [0 for i in range(self.n_hiders)]
             self.seeker_yaw = [[0, 0, 0] for i in range(self.n_seekers)]
-            self.time = -1
 
-        else:
-            self.time = int(msg.clock.sec)
+        self.time = int(msg.clock.sec)
 
+        if self.time == SECONDS_HIDER_START and not self.hider_started:
+            self.hider_started = True
 
-        if msg.clock.sec == SECONDS_HIDER_START and not self.hider_started:
-            self.start_hider()
+        if self.time == SECONDS_SEEKER_START and not self.seeker_started:
+            self.seeker_started = True
 
-        if msg.clock.sec == SECONDS_SEEKER_START and not self.seeker_started:
-            self.start_seeker()
-
-        if msg.clock.sec == GAME_TIME_LIMIT:
+        if self.time == GAME_TIME_LIMIT:
             self.endgame('Hider wins')
 
     def publish_str_msg(self, publisher, msg_data):
@@ -90,19 +87,17 @@ class HideSeek(Node):
         msg.data = msg_data
         publisher.publish(msg)
 
-    def start_hider(self):
-        print("START HIDERS")
-        self.hider_started = True
+    # def start_hider(self):
+    #     self.hider_started = True
 
-        for pub in self.hider_pub:
-            self.publish_str_msg(pub,START_MSG)
+    #     for pub in self.hider_pub:
+    #         self.publish_str_msg(pub,START_MSG)
 
-    def start_seeker(self):
-        print("START SEEKERS")
-        self.seeker_started = True
+    # def start_seeker(self):
+    #     self.seeker_started = True
 
-        for pub in self.seeker_pub:
-            self.publish_str_msg(pub,START_MSG)
+    #     for pub in self.seeker_pub:
+    #         self.publish_str_msg(pub,START_MSG)
 
     def hider_pos_callback(self, id, msg):
         self.hider_pos[id] = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
@@ -152,22 +147,22 @@ class HideSeek(Node):
         if not(self.hider_started and self.seeker_started):
             return False
 
-        gameover = True
+        gameover = False
 
-        for seeker_pos in self.seeker_pos:
+        for hider_pos in self.hider_pos:
             found = False
 
-            for hider_pos in self.hider_pos:
+            for seeker_pos in self.seeker_pos:
                 distance = calc_distance(hider_pos, seeker_pos)
 
                 if distance <= DISTANCE_ENDGAME:
                     found = True
                     break
             
-            if not found:
-                gameover = False
+            if found:
+                gameover = True
                 break
-        
+
         return gameover
 
     def endgame(self, msg='Game Over'):
@@ -176,8 +171,6 @@ class HideSeek(Node):
 
         for pub in self.seeker_pub:
             self.publish_str_msg(pub,GAMEOVER_MSG)
-
-        exit(0)
 
 
 def main(args=None):

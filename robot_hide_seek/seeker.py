@@ -18,6 +18,7 @@ class Seeker(Node):
     angles = []
     distances = []
     time = -1
+    gameover = True
     
     def __init__(self):
         super().__init__('seeker')
@@ -49,39 +50,34 @@ class Seeker(Node):
             self.clock_callback,
             10
         )
+        self.vel_pub = self.create_publisher(
+            Twist,
+            self.node_topic + '/cmd_vel',
+            10
+        )
+        self.lidar_sub = self.create_subscription(
+            LaserScan, 
+            self.node_topic + '/scan', 
+            self.lidar_callback,
+            qos_profile_sensor_data
+        )
+
+    def reset(self):
+        self.follow_id = inf
+        self.follow_distance = inf
+        self.follow_angle = inf
+        self.angles = []
+        self.distances = []
 
     def clock_callback(self, msg):
         if int(msg.clock.sec) < self.time:
-            self.follow_id = inf
-            self.follow_distance = inf
-            self.follow_angle = inf
-            self.angles = []
-            self.distances = []
-            self.time = -1
+            self.gameover = False
+            self.reset()
 
-            try:
-                self.vel_pub
-            except AttributeError:
-                pass
-            else:
-                self.destroy_publisher(self.vel_pub)
-                self.destroy_subscription(self.lidar_sub)
-
-        else: self.time = int(msg.clock.sec)
+        self.time = int(msg.clock.sec)
 
     def game_callback(self, msg):
         if msg.data == START_MSG:
-            self.vel_pub = self.create_publisher(
-                Twist,
-                self.node_topic + '/cmd_vel',
-                10
-            )
-            self.lidar_sub = self.create_subscription(
-                LaserScan, 
-                self.node_topic + '/scan', 
-                self.lidar_callback,
-                qos_profile_sensor_data
-            )
             return
 
         elif msg.data == GAMEOVER_MSG:
@@ -105,6 +101,8 @@ class Seeker(Node):
         self.seeker_coord_pub.publish(msg)
 
     def coord_callback(self, msg):
+        if self.time < SECONDS_SEEKER_START:
+            return
         other_distances = msg.data.rstrip().split('\n')
 
         if len(other_distances) > len(self.distances):
@@ -124,6 +122,9 @@ class Seeker(Node):
             self.follow_distance = self.distances[min_difference[0]]
 
     def lidar_callback(self, msg):
+        if self.time < SECONDS_SEEKER_START or self.gameover:
+            return
+
         min_range = msg.ranges[0]
         min_angle = msg.angle_min
 
@@ -175,13 +176,8 @@ class Seeker(Node):
         self.vel_pub.publish(vel)
 
     def endgame(self):
-        try:
-            self.vel_pub
-        except AttributeError:
-            exit()
-        else:
-            self.vel_pub.publish(Twist())
-            exit()
+        self.gameover = True
+        self.vel_pub.publish(Twist())
 
 def main(args=None):
     rclpy.init(args=args)
