@@ -33,7 +33,7 @@ def main(_args=None):
     highest_reward = 0
 
     for x in range(NEPISODES):
-        print('Strating Episode #' + str(x))
+        print('Starting Episode #' + str(x))
 
         cumulated_reward = 0
         done = False

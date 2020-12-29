@@ -25,9 +25,9 @@ def round_observation(observation):
 # Assumes gazebo simulation and all other robots already running
 def main(_args=None):
     env = gym.make('hiderEnv-v0')
-    outdir = './training_results'
+    # outdir = './training_results'
 
-    env = wrappers.Monitor(env, outdir, force=True) #Force deletes all past training results
+    # env = wrappers.Monitor(env, outdir, force=True) #Force deletes all past training results
 
     qlearn_alg = qlearn.QLearn(actions=range(env.action_space.n),
                 alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON)
@@ -37,18 +37,20 @@ def main(_args=None):
     highest_reward = 0
 
     for x in range(NEPISODES):
-        print('Strating Episode #' + str(x))
+        print('Starting Episode #' + str(x))
 
         cumulated_reward = 0
+        current_hider = 0
         done = False
 
         if qlearn_alg.epsilon > 0.05:
             qlearn_alg.epsilon *= EPSILON_DISCOUNT
 
-        observation = env.reset()
-        state = ''.join(map(str, round_observation(observation)))
+        observations = env.reset()
+        states = [''.join(map(str, round_observation(observations[0]))), ''.join(map(str, round_observation(observations[1])))]
 
         while True:
+            state = states[current_hider]
             action = qlearn_alg.chooseAction(state)
 
             # Execute the action in the environment and get feedback
@@ -62,7 +64,8 @@ def main(_args=None):
             qlearn_alg.learn(state, action, reward, nextState)
 
             if not(done):
-                state = nextState
+                states[current_hider] = nextState
+                current_hider = (current_hider + 1) % N_HIDERS
             else:
                 print("DONE")
                 break

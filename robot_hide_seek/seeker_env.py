@@ -11,7 +11,7 @@ import time
 import threading
 import math
 
-from robot_hide_seek import seeker_train, gazebo_connection
+from robot_hide_seek import seeker_train, gazebo_connection, hider, game_controller
 from robot_hide_seek.utils import *
 
 reg = register(
@@ -24,14 +24,24 @@ class SeekerEnv(gym.Env):
     def __init__(self):
         rclpy.init()
 
-        self.seeker = seeker_train.SeekerTrain(0)
+        self.hiders = [hider.Hider(0),hider.Hider(1)] # Train basic hider (change to hider_train to train with already hider trained)
+        self.seekers = [seeker_train.SeekerTrain(0),seeker_train.SeekerTrain(1)]
+        self.game_controller = game_controller.HideSeek()
 
-        self.seeker_thread = threading.Thread(target=self.run_seeker, daemon=True)
-        self.seeker_thread.start()
+        self.hider_threads = [threading.Thread(target=self.run_hider, args=(0,), daemon=True), threading.Thread(target=self.run_hider, args=(1,), daemon=True)]
+        self.seeker_threads = [threading.Thread(target=self.run_seeker, args=(0,), daemon=True), threading.Thread(target=self.run_seeker, args=(1,), daemon=True)]
+        self.game_controller_thread = [threading.Thread(target=self.run_game_controller, daemon=True), threading.Thread(target=self.run_game_controller, daemon=True)]
+        
+        for thread in self.hider_threads:
+            thread.start()
 
-        self.gazebo = gazebo_connection.GazeboConnection(self.seeker)
+        self.gazebo = gazebo_connection.GazeboConnection(self.game_controller)
         self.action_space = spaces.Discrete(5)
         self.reward_range = (-math.inf, math.inf)
+
+        self.current_seeker = 0
+
+        self.seeker = seeker_train.SeekerTrain(0)
 
         self._seed()
 
@@ -40,18 +50,32 @@ class SeekerEnv(gym.Env):
         return [seed]
 
     def reset(self):
+        self.current_seeker = 0
+
+        for hider in self.hiders:
+            hider.reset()
+        for seeker in self.seekers:
+            seeker.reset()
+        self.game_controller.reset()
+
         self.gazebo.resetSim()
         self.gazebo.unpauseSim()
 
         time.sleep(SECONDS_SEEKER_START)
 
-        observation = self.take_observation()
+        observations = []
+        observations.append(self.take_observation())
+        self.current_seeker = (self.current_seeker + 1) % len(self.hiders)
+        observations.append(self.take_observation())
+        self.current_seeker = (self.current_seeker + 1) % len(self.hiders)
 
-        self.gazebo.unpauseSim()
+        self.gazebo.pauseSim()
 
-        return observation
+        return observations
 
     def step(self, action):
+        seeker = self.seekers[self.current_seeker]
+        
         vel = Twist()
 
         if action == 0: #Forward
@@ -73,30 +97,32 @@ class SeekerEnv(gym.Env):
         self.gazebo.unpauseSim()
 
         try:
-            self.seeker.vel_pub
+            seeker.vel_pub
         except AttributeError:
             pass
         else:
-            self.seeker.vel_pub(vel)
+            seeker.vel_pub.publish(vel)
 
-        time.sleep(RUNNING_STEP)
+        time.sleep(RUNNING_STEP / len(self.seekers))
         observation = self.take_observation()
         self.gazebo.pauseSim()
 
         reward, done = self.process_observation(observation) #Probably take into consideration distance, angle and time left
 
+        self.current_seeker = (self.current_seeker + 1) % len(self.seekers)
+
         return observation, reward, done, {}
 
     def take_observation(self):
-        sensors = self.seeker.lidar_sensors[:]        
+        sensors = self.seekers[self.current_seeker].lidar_sensors[:]        
 
-        return [sensors, self.seeker.follow_angle, self.seeker.follow_distance, self.seeker.time, self.seeker.result]
+        return [sensors, self.seekers[self.current_seeker].follow_angle, self.seekers[self.current_seeker].follow_distance, self.seekers[self.current_seeker].time, self.seekers[self.current_seeker].result]
 
     def process_observation(self, observation):
         reward = 0
         done = False
 
-        if observation[4] != 0 or self.seeker.time >= GAME_TIME_LIMIT:
+        if observation[4] != 0 or observation[3] >= GAME_TIME_LIMIT:
             done = True
 
         if observation[4] > 0:
@@ -116,8 +142,17 @@ class SeekerEnv(gym.Env):
 
         return reward, done
 
-        
-    def run_seeker(self):
-        rclpy.spin(self.seeker)
-        self.seeker.destroy_node()
+    def run_hider(self, id):
+        rclpy.spin(self.hiders[id])
+        self.hiders[id].destroy_node()
+        rclpy.shutdown()
+
+    def run_seeker(self, id):
+        rclpy.spin(self.seekers[id])
+        self.seekers[id].destroy_node()
+        rclpy.shutdown()
+
+    def run_game_controller(self, id):
+        rclpy.spin(self.game_controller)
+        self.game_controller.destroy_node()
         rclpy.shutdown()

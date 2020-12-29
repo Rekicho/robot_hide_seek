@@ -1,6 +1,9 @@
 from math import atan2, pi, sqrt
 from transformations import euler_from_quaternion
 
+N_HIDERS = 2
+N_SEEKERS = 2
+
 # Algortihm Parameters
 ALPHA = 0.1
 GAMMA = 0.8
@@ -10,7 +13,6 @@ NEPISODES = 1000
 
 # Environment Parameters
 RUNNING_STEP = 0.1
-
 
 START_MSG = 'START'
 GAMEOVER_MSG = 'GAMEOVER'

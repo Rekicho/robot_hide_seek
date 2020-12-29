@@ -15,8 +15,8 @@ class SeekerTrain(Node):
     follow_id = inf
     follow_distance = inf
     follow_angle = inf
-    time = -1
     lidar_sensors = []
+    time = -1
     result = 0
 
     def __init__(self, id):
@@ -37,21 +37,23 @@ class SeekerTrain(Node):
             self.clock_callback,
             10
         )
+        self.vel_pub = self.create_publisher(
+            Twist,
+            self.node_topic + '/cmd_vel',
+            10
+        )
+        self.lidar_sub = self.create_subscription(
+            LaserScan, 
+            self.node_topic + '/scan', 
+            self.lidar_callback,
+            qos_profile_sensor_data
+        )
 
     def reset(self):
         self.follow_id = inf
         self.follow_distance = inf
         self.follow_angle = inf
-        self.time = -1
         self.lidar_sensors = []
-        
-        try:
-            self.vel_pub
-        except AttributeError:
-            pass
-        else:
-            self.destroy_publisher(self.vel_pub)
-            self.destroy_subscription(self.lidar_sub)
 
     def clock_callback(self, msg):
         if int(msg.clock.sec) < self.time:
@@ -62,17 +64,6 @@ class SeekerTrain(Node):
 
     def game_callback(self, msg):
         if msg.data == START_MSG:
-            self.vel_pub = self.create_publisher(
-                Twist,
-                self.node_topic + '/cmd_vel',
-                10
-            )
-            self.lidar_sub = self.create_subscription(
-                LaserScan, 
-                self.node_topic + '/scan', 
-                self.lidar_callback,
-                qos_profile_sensor_data
-            )
             return
 
         elif msg.data == GAMEOVER_MSG:
@@ -96,7 +87,8 @@ class SeekerTrain(Node):
                 self.follow_distance = closest[1]
 
     def lidar_callback(self, msg):
-        self.lidar_sensors = msg.ranges[:]
+        self.lidar_sensors = [msg.ranges[0], msg.ranges[45], msg.ranges[90], msg.ranges[135], msg.ranges[180], msg.ranges[225], msg.ranges[270], msg.ranges[315]]
+        # self.lidar_sensors = msg.ranges[:]
 
     def endgame(self):
         if self.time < GAME_TIME_LIMIT:

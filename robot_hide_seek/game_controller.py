@@ -15,10 +15,12 @@ class HideSeek(Node):
     def __init__(self):
         super().__init__('hide_seek')
 
-        self.declare_parameter('n_hiders')
-        self.n_hiders = self.get_parameter('n_hiders').value
-        self.declare_parameter('n_seekers')
-        self.n_seekers = self.get_parameter('n_seekers').value
+        # self.declare_parameter('n_hiders')
+        # self.n_hiders = self.get_parameter('n_hiders').value
+        # self.declare_parameter('n_seekers')
+        # self.n_seekers = self.get_parameter('n_seekers').value
+        self.n_hiders = N_HIDERS
+        self.n_seekers = N_SEEKERS
         
         self.hider_started = False
         self.seeker_started = False
@@ -62,14 +64,18 @@ class HideSeek(Node):
             10
         ) for i in range(self.n_seekers)]
 
+    def reset(self):
+        self.hider_started = False
+        self.seeker_started = False
+        self.hider_pos = [[0, 0, 0] for i in range(self.n_hiders)]
+        self.seeker_pos = [[0, 0, 0] for i in range(self.n_seekers)]
+        self.hider_yaw = [0 for i in range(self.n_hiders)]
+        self.seeker_yaw = [[0, 0, 0] for i in range(self.n_seekers)]
+
+
     def clock_callback(self, msg):
         if int(msg.clock.sec) < self.time:
-            self.hider_started = False
-            self.seeker_started = False
-            self.hider_pos = [[0, 0, 0] for i in range(self.n_hiders)]
-            self.seeker_pos = [[0, 0, 0] for i in range(self.n_seekers)]
-            self.hider_yaw = [0 for i in range(self.n_hiders)]
-            self.seeker_yaw = [[0, 0, 0] for i in range(self.n_seekers)]
+            self.reset()
 
         self.time = int(msg.clock.sec)
 
@@ -145,6 +151,9 @@ class HideSeek(Node):
 
     def check_gameover(self):
         if not(self.hider_started and self.seeker_started):
+            return False
+
+        if self.time < SECONDS_SEEKER_START:
             return False
 
         gameover = False

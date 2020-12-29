@@ -20,7 +20,7 @@ class HiderTrain(Node):
     result = 0
     
     def __init__(self, id):
-        super().__init__('hider')
+        super().__init__('hider_' + str(id))
 
         self.node_topic = '/hider_' + str(id)
 
@@ -90,7 +90,10 @@ class HiderTrain(Node):
         self.lidar_sensors = [msg.ranges[0], msg.ranges[45], msg.ranges[90], msg.ranges[135], msg.ranges[180], msg.ranges[225], msg.ranges[270], msg.ranges[315]]
 
     def endgame(self):
-        if self.time < GAME_TIME_LIMIT:
+        if self.time < SECONDS_SEEKER_START:
+            self.result = 0
+
+        elif self.time < GAME_TIME_LIMIT:
             self.result = -1
 
         else:
