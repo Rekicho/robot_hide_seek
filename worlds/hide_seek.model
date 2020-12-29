@@ -163,24 +163,24 @@
 
     <!-- LEFT -->
     <include>
-      <pose>0.5 1.75 0 0 0 0</pose>
+      <pose>-0.5 1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall21</name>
     </include>
     <include>
-      <pose>1.25 1.75 0 0 0 0</pose>
+      <pose>0.5 1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall22</name>
     </include>
 
     <!-- RIGHT -->
     <include>
-      <pose>-0.5 -1.75 0 0 0 0</pose>
+      <pose>0.5 -1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall23</name>
     </include>
     <include>
-      <pose>-1.25 -1.75 0 0 0 0</pose>
+      <pose>-0.5 -1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall24</name>
     </include>
@@ -192,7 +192,7 @@
       <name>wall25</name>
     </include>
     <include>
-      <pose>1.75 -1.25 0 0 0 1.571</pose>
+      <pose>1.75 0.5 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall26</name>
     </include>
@@ -204,7 +204,7 @@
       <name>wall27</name>
     </include>
     <include>
-      <pose>-1.75 1.25 0 0 0 1.571</pose>
+      <pose>-1.75 -0.5 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall28</name>
     </include>
