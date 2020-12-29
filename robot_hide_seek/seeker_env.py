@@ -22,24 +22,24 @@ reg = register(
 
 class SeekerEnv(gym.Env):
     def __init__(self):
-            rclpy.init()
+        rclpy.init()
 
-            self.seeker = seeker_train.SeekerTrain(0)
+        self.seeker = seeker_train.SeekerTrain(0)
 
-            self.seeker_thread = threading.Thread(target=self.run_seeker, daemon=True)
-            self.seeker_thread.start()
+        self.seeker_thread = threading.Thread(target=self.run_seeker, daemon=True)
+        self.seeker_thread.start()
 
-            self.gazebo = gazebo_connection.GazeboConnection(self.seeker)
-            self.action_space = spaces.Discrete(5)
-            self.reward_range = (-math.inf, math.inf)
+        self.gazebo = gazebo_connection.GazeboConnection(self.seeker)
+        self.action_space = spaces.Discrete(5)
+        self.reward_range = (-math.inf, math.inf)
 
-            self._seed()
+        self._seed()
 
     def _seed(self, seed = None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _reset(self):
+    def reset(self):
         self.gazebo.resetSim()
         self.gazebo.unpauseSim()
 
@@ -51,7 +51,7 @@ class SeekerEnv(gym.Env):
 
         return observation
 
-    def _step(self, action):
+    def step(self, action):
         vel = Twist()
 
         if action == 0: #Forward
@@ -96,14 +96,14 @@ class SeekerEnv(gym.Env):
         reward = 0
         done = False
 
-        if observation[4] != 0:
+        if observation[4] != 0 or self.seeker.time >= GAME_TIME_LIMIT:
             done = True
 
         if observation[4] > 0:
-            reward = math.inf
+            reward = 10000
 
         elif observation[4] < 0:
-            reward = -math.inf
+            reward = -10000
 
         else:
             if observation[2] == math.inf:
