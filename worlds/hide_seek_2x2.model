@@ -169,72 +169,97 @@
       <name>wall20</name>
     </include>
 
-    <!-- LEFT EYE -->
+    <!-- LEFT -->
     <include>
-      <pose>1 2 0 0 0 1.571</pose>
+      <pose>0.5 1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall21</name>
     </include>
     <include>
-      <pose>1 1 0 0 0 1.571</pose>
+      <pose>1.25 1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall22</name>
     </include>
+
+    <!-- RIGHT -->
     <include>
-      <pose>1.5 1.5 0 0 0 0</pose>
+      <pose>-0.5 -1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall23</name>
     </include>
     <include>
-      <pose>2 1 0 0 0 1.571</pose>
+      <pose>-1.25 -1.75 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall24</name>
     </include>
 
-    <!-- RIGHT EYE -->
+    <!-- UP -->
     <include>
-      <pose>1 -2 0 0 0 1.571</pose>
+      <pose>1.75 -0.5 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall25</name>
     </include>
     <include>
-      <pose>1 -1 0 0 0 1.571</pose>
+      <pose>1.75 -1.25 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall26</name>
     </include>
+
+    <!-- DOWN -->
     <include>
-      <pose>1.5 -1.5 0 0 0 0</pose>
+      <pose>-1.75 0.5 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall27</name>
     </include>
     <include>
-      <pose>2 -1 0 0 0 1.571</pose>
+      <pose>-1.75 1.25 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
       <name>wall28</name>
     </include>
 
-    <!-- mouth -->
+    <!-- CENTER -->
     <include>
-      <pose>-1.5 0.5 0 0 0 0</pose>
+      <pose> 0.5 0 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
-      <name>wall29</name>
+      <name>center_up</name>
     </include>
     <include>
-      <pose>-1.5 -0.5 0 0 0 0</pose>
+      <pose> -0.5 0 0 0 0 0</pose>
       <uri>model://wall_1m_min_height</uri>
-      <name>wall30</name>
+      <name>center_down</name>
     </include>
     <include>
-      <pose>-1 0 0 0 0 1.571</pose>
+      <pose> 0 0.5 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
-      <name>wall31</name>
+      <name>center_left</name>
     </include>
     <include>
-      <pose>-2 0 0 0 0 1.571</pose>
+      <pose> 0 -0.5 0 0 0 1.571</pose>
       <uri>model://wall_1m_min_height</uri>
-      <name>wall32</name>
+      <name>center_right</name>
     </include>
 
+    <!-- PLUS -->
+    <!-- <include>
+      <pose>-0.5 -1 0 0 0 0</pose>
+      <uri>model://wall_1m_min_height</uri>
+      <name>right_v</name>
+    </include>
+    <include>
+      <pose>0.5 1 0 0 0 0</pose>
+      <uri>model://wall_1m_min_height</uri>
+      <name>left_v</name>
+    </include>
+    <include>
+      <pose>1 -0.5 0 0 0 1.571</pose>
+      <uri>model://wall_1m_min_height</uri>
+      <name>right_h</name>
+    </include>
+    <include>
+      <pose>-1 0.5 0 0 0 1.571</pose>
+      <uri>model://wall_1m_min_height</uri>
+      <name>left_h</name>
+    </include> -->
 
   </world>
 </sdf>
