@@ -10,17 +10,16 @@ from robot_hide_seek.utils import *
 from functools import reduce
 
 def round_observation(observation):
-    sensors = []
+    res = []
 
     for sensor in observation[0]:
-        sensors.append(str(round(sensor, 2)))
+        res.append(str(round(sensor, 2)))
 
-    observation[0] = sensors
+    res.append(str(round(observation[1], 2)))
+    res.append(str(round(observation[2], 2)))
+    res.append(observation[3])
 
-    observation[1] = str(round(observation[1], 2))
-    observation[2] = str(round(observation[2], 2))
-
-    return observation[:4]
+    return res
 
 # Assumes gazebo simulation and all other robots already running
 def main(_args=None):
