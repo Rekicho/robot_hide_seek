@@ -20,7 +20,6 @@ reg = register(
 )
 
 # Decide if train both hiders or only one
-# Create thread where to run the hider concurrently - Check if works
 
 class HiderEnv(gym.Env):
     def __init__(self):

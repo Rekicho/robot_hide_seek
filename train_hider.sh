@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-trap 'pkill hider; pkill seeker; pkill game_controller' INT
+trap './kill_all.sh' INT
 
 ros2 run robot_hide_seek hider --ros-args -p id:=1 &
 ros2 run robot_hide_seek seeker --ros-args -p id:=0 &

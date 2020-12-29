@@ -20,7 +20,7 @@ def round_observation(observation):
     observation[1] = str(round(observation[1], 2))
     observation[2] = str(round(observation[2], 2))
 
-    return observation
+    return observation[:4]
 
 # Assumes gazebo simulation and all other robots already running
 def main(_args=None):

@@ -87,7 +87,7 @@ class HiderTrain(Node):
                 self.follow_distance = closest[1]
 
     def lidar_callback(self, msg):
-        self.lidar_sensors = msg.ranges[:]
+        self.lidar_sensors = [msg.ranges[0], msg.ranges[45], msg.ranges[90], msg.ranges[135], msg.ranges[180], msg.ranges[225], msg.ranges[270], msg.ranges[315]]
 
     def endgame(self):
         if self.time < GAME_TIME_LIMIT:
