@@ -9,10 +9,12 @@ Inspired by https://gym.openai.com/evaluations/eval_kWknKOkPQ7izrixdhriurA
 '''
 
 import random
+import ast
 
 class QLearn:
-    def __init__(self, actions, epsilon, alpha, gamma):
-        self.q = {}
+    def __init__(self, actions, epsilon, alpha, gamma, res_path):
+        f = open(res_path, 'r')
+        self.q = ast.literal_eval(f.read().strip())
         self.epsilon = epsilon  # exploration constant
         self.alpha = alpha      # discount constant
         self.gamma = gamma      # discount factor
@@ -59,3 +61,8 @@ class QLearn:
     def learn(self, state1, action1, reward, state2):
         maxqnew = max([self.getQ(state2, a) for a in self.actions])
         self.learnQ(state1, action1, reward, reward + self.gamma*maxqnew)
+
+    def save(self, path):
+        f = open(path, 'w')
+        f.write(str(self.q))
+        f.close()

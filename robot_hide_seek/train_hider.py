@@ -29,7 +29,7 @@ def main(_args=None):
     # env = wrappers.Monitor(env, outdir, force=True) #Force deletes all past training results
 
     qlearn_alg = qlearn.QLearn(actions=range(env.action_space.n),
-                alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON)
+                alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON, res_path='./training_results/hiders.txt')
     initial_epsilon = qlearn_alg.epsilon
 
     start_time = time.time()
@@ -66,6 +66,7 @@ def main(_args=None):
                 states[current_hider] = nextState
                 current_hider = (current_hider + 1) % N_HIDERS
             else:
+                qlearn_alg.save('./training_results/hiders.txt')
                 print("DONE")
                 break
 
