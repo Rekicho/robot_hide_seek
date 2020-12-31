@@ -24,8 +24,8 @@ class HiderEnv(gym.Env):
         rclpy.init()
         self.executor = rclpy.executors.MultiThreadedExecutor(5)
 
-        self.hiders = [hider_train.HiderTrain(0),hider_train.HiderTrain(1)]
-        self.seekers = [seeker.Seeker(0),seeker.Seeker(1)]
+        self.hiders = [hider_train.HiderTrain(0), hider_train.HiderTrain(1)]
+        self.seekers = [seeker.Seeker(0), seeker.Seeker(1)]
         self.game_controller = game_controller.HideSeek()
 
         for hider_node in self.hiders:
@@ -66,7 +66,9 @@ class HiderEnv(gym.Env):
         self.gazebo.resetSim()
         self.gazebo.unpauseSim()
 
-        time.sleep(SECONDS_HIDER_START)
+        while True:
+            if self.game_controller.time >= SECONDS_HIDER_START:
+                break
 
         observations = []
         observations.append(self.take_observation())
@@ -88,14 +90,14 @@ class HiderEnv(gym.Env):
             vel.angular.z = 0.0
         elif action == 1: #Rotate left
             vel.linear.x = 0.0
-            vel.angular.z = ROBOT_ANGULAR_SPEED #CHECK THIS VEL
+            vel.angular.z = ROBOT_ANGULAR_SPEED
         elif action == 2: #Rotate right
             vel.linear.x = 0.0
-            vel.angular.z = -ROBOT_ANGULAR_SPEED #CHECK THIS VEL
+            vel.angular.z = -ROBOT_ANGULAR_SPEED
         elif action == 3: #Stop
             vel.linear.x = 0.0
             vel.angular.z = 0.0
-        elif action == 4: #Stop
+        elif action == 4: #Back
             vel.linear.x = -HIDER_LINEAR_SPEED
             vel.angular.z = 0.0
 
@@ -112,7 +114,7 @@ class HiderEnv(gym.Env):
         observation = self.take_observation()
         self.gazebo.pauseSim()
 
-        reward, done = self.process_observation(observation) #Probably take into consideration distance, angle and time left
+        reward, done = self.process_observation(observation)
 
         self.current_hider = (self.current_hider + 1) % len(self.hiders)
 

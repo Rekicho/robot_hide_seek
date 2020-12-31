@@ -79,13 +79,13 @@ class HideSeek(Node):
 
         self.time = int(msg.clock.sec)
 
-        if self.time == SECONDS_HIDER_START and not self.hider_started:
+        if self.time >= SECONDS_HIDER_START and not self.hider_started:
             self.hider_started = True
 
-        if self.time == SECONDS_SEEKER_START and not self.seeker_started:
+        if self.time >= SECONDS_SEEKER_START and not self.seeker_started:
             self.seeker_started = True
 
-        if self.time == GAME_TIME_LIMIT:
+        if self.time >= GAME_TIME_LIMIT:
             self.endgame('Hider wins')
 
     def publish_str_msg(self, publisher, msg_data):

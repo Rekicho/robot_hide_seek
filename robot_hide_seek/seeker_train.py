@@ -15,12 +15,14 @@ class SeekerTrain(Node):
     follow_id = inf
     follow_distance = inf
     follow_angle = inf
-    lidar_sensors = []
+    angles = []
+    distances = []
     time = -1
+    lidar_sensors = []
     result = 0
 
     def __init__(self, id):
-        super().__init__('seeker')
+        super().__init__('seeker_' + str(id))
 
         self.node_topic = '/seeker_' + str(id)
 
@@ -30,7 +32,17 @@ class SeekerTrain(Node):
             self.game_callback,
             10
         )
-
+        self.seeker_coord_sub = self.create_subscription(
+            String,
+            '/seekers',
+            self.coord_callback,
+            10
+        )
+        self.seeker_coord_pub = self.create_publisher(
+            String,
+            '/seekers',
+            10
+        )
         self.clock_sub = self.create_subscription(
             Clock, 
             '/clock', 
@@ -53,6 +65,8 @@ class SeekerTrain(Node):
         self.follow_id = inf
         self.follow_distance = inf
         self.follow_angle = inf
+        self.angles = []
+        self.distances = []
         self.lidar_sensors = []
 
     def clock_callback(self, msg):
@@ -60,7 +74,7 @@ class SeekerTrain(Node):
             self.result = 0
             self.reset()
 
-        else: self.time = int(msg.clock.sec)
+        self.time = int(msg.clock.sec)
 
     def game_callback(self, msg):
         if msg.data == START_MSG:
@@ -72,29 +86,52 @@ class SeekerTrain(Node):
         message = msg.data.rstrip().split('\n\n')
 
         if message[0] == POSITIONS_MSG_HEADER:
-            angles = [float(pos.split('\n')[0][7:]) for pos in message[1:]]
-            distances = [float(pos.split('\n')[1][10:]) for pos in message[1:]]
+            self.angles = [float(pos.split('\n')[0][7:]) for pos in message[1:]]
+            self.distances = [float(pos.split('\n')[1][10:]) for pos in message[1:]]
 
-            closest = (inf, inf)
+            if self.seeker_coord_pub:
+                self.share_distances()
 
-            for i, dist in enumerate(distances):
-                if dist < closest[1]:
-                    closest = (i, dist)
+    def share_distances(self):
+        msg = String()
 
-            if not isinf(closest[0]):
-                self.follow_id = closest[0]
-                self.follow_angle = angles[self.follow_id]
-                self.follow_distance = closest[1]
+        for dist in self.distances:
+            msg.data += str(dist) + '\n'
+
+        self.seeker_coord_pub.publish(msg)
+
+    def coord_callback(self, msg):
+        if self.time < SECONDS_SEEKER_START:
+            return
+        other_distances = msg.data.rstrip().split('\n')
+
+        if len(other_distances) > len(self.distances):
+            return
+        
+        min_difference = (inf, inf)
+
+        for i, distance in enumerate(other_distances):
+            diff = self.distances[i] - float(distance)
+
+            if diff < min_difference[1]:
+                min_difference = (i, diff)
+
+        if not isinf(min_difference[0]):
+            self.follow_id = min_difference[0]
+            self.follow_angle = self.angles[min_difference[0]]
+            self.follow_distance = self.distances[min_difference[0]]
 
     def lidar_callback(self, msg):
         self.lidar_sensors = [msg.ranges[0], msg.ranges[45], msg.ranges[90], msg.ranges[135], msg.ranges[180], msg.ranges[225], msg.ranges[270], msg.ranges[315]]
-        # self.lidar_sensors = msg.ranges[:]
 
     def endgame(self):
-        if self.time < GAME_TIME_LIMIT:
-            self.result = -1
+        if self.time < SECONDS_SEEKER_START:
+            self.result = 0
+
+        elif self.time < GAME_TIME_LIMIT:
+            self.result = 1
 
         else:
-            self.result = 1
+            self.result = -1
 
         self.reset()

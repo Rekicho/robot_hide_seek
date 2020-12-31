@@ -7,26 +7,24 @@ import time
 from robot_hide_seek import seeker_env, qlearn
 from robot_hide_seek.utils import *
 
-from functools import reduce
-
 def round_observation(observation):
-    for i, sensor in enumerate(observation[0]):
-        observation[0][i] = str(round(sensor, 2))
+    res = []
 
-    observation[1] = str(round(observation[1], 2))
-    observation[2] = str(round(observation[1], 2))
+    for sensor in observation[0]:
+        res.append(str(round(sensor, 2)))
 
-    return observation
+    res.append(str(round(observation[1], 2)))
+    res.append(str(round(observation[2], 2)))
+    res.append(observation[3])
 
-# Assumes gazebo simulation and all other robots already running
+    return res
+
+# Assumes gazebo simulation already running
 def main(_args=None):
     env = gym.make('seekerEnv-v0')
-    outdir = './training_results' # Maybe change to content train_seeker and train_hider results
-
-    env = wrappers.Monitor(env, outdir, force=True) #Force deletes all past training results
 
     qlearn_alg = qlearn.QLearn(actions=range(env.action_space.n),
-                alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON)
+                alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON, res_path='./training_results/seekers.txt')
     initial_epsilon = qlearn_alg.epsilon
 
     start_time = time.time()
@@ -36,15 +34,17 @@ def main(_args=None):
         print('Starting Episode #' + str(x))
 
         cumulated_reward = 0
+        current_seeker = 0
         done = False
 
         if qlearn_alg.epsilon > 0.05:
             qlearn_alg.epsilon *= EPSILON_DISCOUNT
 
-        observation = env.reset()
-        state = ''.join(map(str, round_observation(observation)))
+        observations = env.reset()
+        states = [','.join(map(str, round_observation(observations[0]))), ','.join(map(str, round_observation(observations[1])))]
 
         while True:
+            state = states[current_seeker]
             action = qlearn_alg.chooseAction(state)
 
             # Execute the action in the environment and get feedback
@@ -53,13 +53,15 @@ def main(_args=None):
             if highest_reward < cumulated_reward:
                 highest_reward = cumulated_reward
 
-            nextState = ''.join(map(str, round_observation(observation)))
+            nextState = ','.join(map(str, round_observation(observation)))
 
             qlearn_alg.learn(state, action, reward, nextState)
 
             if not(done):
-                state = nextState
+                states[current_seeker] = nextState
+                current_seeker = (current_seeker + 1) % N_SEEKERS
             else:
+                qlearn_alg.save('./training_results/seekers.txt')
                 print("DONE")
                 break
 

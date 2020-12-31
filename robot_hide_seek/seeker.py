@@ -20,11 +20,15 @@ class Seeker(Node):
     time = -1
     gameover = True
     
-    def __init__(self,id):
-        super().__init__('seeker_' + str(id))
+    def __init__(self, id=None):
+        if id==None:
+            super().__init__('seeker')
+            self.declare_parameter('id')
+            id = self.get_parameter('id').value
 
-        # self.declare_parameter('id')
-        # id = self.get_parameter('id').value
+        else:
+            super().__init__('seeker_' + str(id))
+
         self.node_topic = '/seeker_' + str(id)
 
         self.game_sub = self.create_subscription(

@@ -17,31 +17,31 @@ from robot_hide_seek.utils import *
 reg = register(
     id='seekerEnv-v0',
     entry_point='robot_hide_seek.seeker_env:SeekerEnv',
-    # timestep_limit=100,
 )
 
 class SeekerEnv(gym.Env):
     def __init__(self):
         rclpy.init()
+        self.executor = rclpy.executors.MultiThreadedExecutor(5)
 
-        self.hiders = [hider.Hider(0),hider.Hider(1)] # Train basic hider (change to hider_train to train with already hider trained)
-        self.seekers = [seeker_train.SeekerTrain(0),seeker_train.SeekerTrain(1)]
+        self.hiders = [hider.Hider(0), hider.Hider(1)]
+        self.seekers = [seeker_train.SeekerTrain(0), seeker_train.SeekerTrain(1)]
         self.game_controller = game_controller.HideSeek()
 
-        self.hider_threads = [threading.Thread(target=self.run_hider, args=(0,), daemon=True), threading.Thread(target=self.run_hider, args=(1,), daemon=True)]
-        self.seeker_threads = [threading.Thread(target=self.run_seeker, args=(0,), daemon=True), threading.Thread(target=self.run_seeker, args=(1,), daemon=True)]
-        self.game_controller_thread = [threading.Thread(target=self.run_game_controller, daemon=True), threading.Thread(target=self.run_game_controller, daemon=True)]
-        
-        for thread in self.hider_threads:
-            thread.start()
+        for hider_node in self.hiders:
+            self.executor.add_node(hider_node)
+        for seeker_node in self.seekers:
+            self.executor.add_node(seeker_node)
+        self.executor.add_node(self.game_controller)
+
+        self.executor_thread = threading.Thread(target=self.run_executor, daemon=True)
+        self.executor_thread.start()
 
         self.gazebo = gazebo_connection.GazeboConnection(self.game_controller)
         self.action_space = spaces.Discrete(5)
         self.reward_range = (-math.inf, math.inf)
 
         self.current_seeker = 0
-
-        self.seeker = seeker_train.SeekerTrain(0)
 
         self._seed()
 
@@ -52,22 +52,29 @@ class SeekerEnv(gym.Env):
     def reset(self):
         self.current_seeker = 0
 
-        for hider in self.hiders:
-            hider.reset()
-        for seeker in self.seekers:
-            seeker.reset()
+        for hider_node in self.hiders:
+            hider_node.gameover = False
+            hider_node.time = 0
+            hider_node.reset()
+        for seeker_node in self.seekers:
+            seeker_node.result = 0
+            seeker_node.time = 0
+            seeker_node.reset()
+        self.game_controller.time = 0
         self.game_controller.reset()
 
         self.gazebo.resetSim()
         self.gazebo.unpauseSim()
 
-        time.sleep(SECONDS_SEEKER_START)
+        while True:
+            if self.game_controller.time >= SECONDS_SEEKER_START:
+                break
 
         observations = []
         observations.append(self.take_observation())
-        self.current_seeker = (self.current_seeker + 1) % len(self.hiders)
+        self.current_seeker = (self.current_seeker + 1) % len(self.seekers)
         observations.append(self.take_observation())
-        self.current_seeker = (self.current_seeker + 1) % len(self.hiders)
+        self.current_seeker = (self.current_seeker + 1) % len(self.seekers)
 
         self.gazebo.pauseSim()
 
@@ -83,14 +90,14 @@ class SeekerEnv(gym.Env):
             vel.angular.z = 0.0
         elif action == 1: #Rotate left
             vel.linear.x = 0.0
-            vel.angular.z = ROBOT_ANGULAR_SPEED #CHECK THIS VEL
+            vel.angular.z = ROBOT_ANGULAR_SPEED
         elif action == 2: #Rotate right
             vel.linear.x = 0.0
-            vel.angular.z = -ROBOT_ANGULAR_SPEED #CHECK THIS VEL
+            vel.angular.z = -ROBOT_ANGULAR_SPEED
         elif action == 3: #Stop
             vel.linear.x = 0.0
             vel.angular.z = 0.0
-        elif action == 4: #Stop
+        elif action == 4: #Back
             vel.linear.x = -SEEKER_LINEAR_SPEED
             vel.angular.z = 0.0
 
@@ -107,14 +114,14 @@ class SeekerEnv(gym.Env):
         observation = self.take_observation()
         self.gazebo.pauseSim()
 
-        reward, done = self.process_observation(observation) #Probably take into consideration distance, angle and time left
+        reward, done = self.process_observation(observation)
 
         self.current_seeker = (self.current_seeker + 1) % len(self.seekers)
 
         return observation, reward, done, {}
 
     def take_observation(self):
-        sensors = self.seekers[self.current_seeker].lidar_sensors[:]        
+        sensors = self.seekers[self.current_seeker].lidar_sensors[:]     
 
         return [sensors, self.seekers[self.current_seeker].follow_angle, self.seekers[self.current_seeker].follow_distance, self.seekers[self.current_seeker].time, self.seekers[self.current_seeker].result]
 
@@ -125,34 +132,30 @@ class SeekerEnv(gym.Env):
         if observation[4] != 0 or observation[3] >= GAME_TIME_LIMIT:
             done = True
 
-        if observation[4] > 0:
-            reward = 10000
+            if observation[4] > 0:
+                reward = -10000
 
-        elif observation[4] < 0:
-            reward = -10000
+            elif observation[4] < 0:
+                reward = 10000
 
         else:
             if observation[2] == math.inf:
-                reward = 20
+                reward = -20
 
             else:
-                reward = observation[2]
+                reward = -observation[2]
 
-            reward += (1 - observation[3] / GAME_TIME_LIMIT) * TIME_REWARD # inverse of hider (1-x)*k
+            reward -= (observation[3] / GAME_TIME_LIMIT) * TIME_REWARD
 
         return reward, done
 
-    def run_hider(self, id):
-        rclpy.spin(self.hiders[id])
-        self.hiders[id].destroy_node()
-        rclpy.shutdown()
-
-    def run_seeker(self, id):
-        rclpy.spin(self.seekers[id])
-        self.seekers[id].destroy_node()
-        rclpy.shutdown()
-
-    def run_game_controller(self, id):
-        rclpy.spin(self.game_controller)
+    def run_executor(self):
+        self.executor.spin()
+        
+        for hider_node in self.hiders:
+            hider_node.destroy_node()
+        for seeker_node in self.seekers:
+            seeker_node.destroy_node()
         self.game_controller.destroy_node()
+
         rclpy.shutdown()

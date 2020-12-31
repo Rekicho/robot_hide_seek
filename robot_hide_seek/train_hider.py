@@ -7,8 +7,6 @@ import time
 from robot_hide_seek import hider_env, qlearn
 from robot_hide_seek.utils import *
 
-from functools import reduce
-
 def round_observation(observation):
     res = []
 
@@ -21,12 +19,9 @@ def round_observation(observation):
 
     return res
 
-# Assumes gazebo simulation and all other robots already running
+# Assumes gazebo simulation already running
 def main(_args=None):
     env = gym.make('hiderEnv-v0')
-    # outdir = './training_results'
-
-    # env = wrappers.Monitor(env, outdir, force=True) #Force deletes all past training results
 
     qlearn_alg = qlearn.QLearn(actions=range(env.action_space.n),
                 alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON, res_path='./training_results/hiders.txt')
@@ -46,7 +41,7 @@ def main(_args=None):
             qlearn_alg.epsilon *= EPSILON_DISCOUNT
 
         observations = env.reset()
-        states = [''.join(map(str, round_observation(observations[0]))), ''.join(map(str, round_observation(observations[1])))]
+        states = [','.join(map(str, round_observation(observations[0]))), ','.join(map(str, round_observation(observations[1])))]
 
         while True:
             state = states[current_hider]
@@ -58,7 +53,7 @@ def main(_args=None):
             if highest_reward < cumulated_reward:
                 highest_reward = cumulated_reward
 
-            nextState = ''.join(map(str, round_observation(observation)))
+            nextState = ','.join(map(str, round_observation(observation)))
 
             qlearn_alg.learn(state, action, reward, nextState)
 
