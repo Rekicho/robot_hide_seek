@@ -29,7 +29,7 @@ setup(
             'game_controller = robot_hide_seek.game_controller:main',
             'train_hider = robot_hide_seek.train_hider:main',
             'train_seeker = robot_hide_seek.train_seeker:main',
-            'deep_train = robot_hide_seek.deep_train:main' #not working
+            'deep_train = robot_hide_seek.deepqlearn:main'
         ],
     },
 )
