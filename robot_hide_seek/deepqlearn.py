@@ -4,18 +4,15 @@ Adapted from https://github.com/vmayoral/basic_reinforcement_learning
 @author: Victor Mayoral Vilches <victor@erlerobotics.com>
 '''
 
-import gym
 import random
 import numpy as np
+
 from keras.models import Sequential
 from keras import optimizers
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.regularizers import l2
-
-from robot_hide_seek import seeker_env
-from robot_hide_seek.utils import *
 
 # import os
 # os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
@@ -286,95 +283,3 @@ class DeepQ:
                     X_batch = np.append(X_batch, np.array([newState.copy()]), axis=0)
                     Y_batch = np.append(Y_batch, np.array([[reward]*self.output_size]), axis=0)
             self.model.fit(X_batch, Y_batch, batch_size = len(miniBatch), epochs=1, verbose=0)
-
-env = gym.make('seekerEnv-v0')
-
-epochs = 1000000
-# steps = 100000
-updateTargetNetwork = 10
-explorationRate = 1
-minibatch_size = 1 #128
-learnStart = 0 #128
-learningRate = 0.00025
-discountFactor = 0.99
-memorySize = 100000
-
-last10Scores = [0] * 10
-last10ScoresIndex = 0
-last10Filled = False
-
-deepQ = DeepQ(11, 5, memorySize, discountFactor, learningRate, learnStart)
-# deepQ.initNetworks([30,30,30])
-# deepQ.initNetworks([30,30])
-deepQ.initNetworks([300,300])
-
-
-def round_observation(observation):
-    res = []
-
-    for sensor in observation[0]:
-        res.append(round(sensor, 2))
-
-    res.append(round(observation[1], 2))
-    res.append(round(observation[2], 2))
-    res.append(observation[3])
-
-    return np.array(res)
-
-
-stepCounter = 0
-
-# number of reruns
-for epoch in range(epochs):
-    observations = env.reset()
-
-    for i, observation in enumerate(observations):
-        observations[i] = round_observation(observation)
-
-    current_seeker = 0
-    done = False
-
-    t = 0
-    while not done:
-        qValues = deepQ.getQValues(observations[current_seeker])
-
-        action = deepQ.selectAction(qValues, explorationRate)
-
-        newObservation, reward, done, info = env.step(action)
-
-        newObservation = round_observation(newObservation)
-
-        deepQ.addMemory(observations[current_seeker], action, reward, newObservation, done)
-
-        if stepCounter >= learnStart:
-            if stepCounter <= updateTargetNetwork:
-                deepQ.learnOnMiniBatch(minibatch_size, False)
-            else:
-                deepQ.learnOnMiniBatch(minibatch_size, True)
-
-        observations[current_seeker] = newObservation
-        current_seeker = (current_seeker + 1) % N_SEEKERS
-        t += 1
-
-        print(t)
-
-        if done:
-            last10Scores[last10ScoresIndex] = t
-            last10ScoresIndex += 1
-            if last10ScoresIndex >= 10:
-                last10Filled = True
-                last10ScoresIndex = 0
-            if not last10Filled:
-                print("Episode " + str(epoch) + " finished after {} timesteps".format(t+1))
-            else :
-                print("Episode " + str(epoch) + " finished after {} timesteps".format(t+1) + " last 10 average: " + str(sum(last10Scores)/len(last10Scores)))
-            break
-
-        stepCounter += 1
-        if stepCounter % updateTargetNetwork == 0:
-            deepQ.updateTargetNetwork()
-            print("updating target network")
-
-    explorationRate *= 0.995
-    # explorationRate -= (2.0/epochs)
-    explorationRate = max(0.05, explorationRate)

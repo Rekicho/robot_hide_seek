@@ -7,6 +7,7 @@ Add to ~/.bashrc
     source ~/ros2_ws/install/setup.bash
 
 Run:
+    chmod *.sh
     colcon build
     ros2 topic list
     ros2 launch robot_hide_seek hide_seek.launch.py
