@@ -33,36 +33,29 @@ TIME_REWARD = 10
 TIME_REWARD = 10
 TIME_REWARD = 10
 FOV_ANGLE = pi / 3
+
 WALLS = [\
-        [[-2.5, 2.5], [2.5, 2.5]], \
-        [[-2.5, -2.5], [2.5, -2.5]], \
+        [[-1, 0], [1, 0]], \
+        [[0, -1], [0, 1]], \
+        [[1.75, -1], [1.75, 1]], \
+        [[-1.75, -1], [-1.75, 1]], \
+        [[-1, -1.75], [1, -1.75]], \
+        [[-1, 1.75], [1, 1.75]], \
         [[2.5, -2.5], [2.5, 2.5]], \
         [[-2.5, -2.5], [-2.5, 2.5]], \
-        [[1, 0.5], [1, 2.5]], \
-        [[2, 0.5], [2, 1.5]], \
-        [[1, 1.5], [2, 1.5]], \
-        [[1, -0.5], [1, -2.5]], \
-        [[2, -0.5], [2, -1.5]], \
-        [[1, -1.5], [2, -1.5]], \
-        [[-2, 0.5], [-1, 0.5]], \
-        [[-2, -0.5], [-1, -0.5]], \
-        [[-1, -0.5], [-1, 0.5]], \
-        [[-2, -0.5], [-2, -0.5]] \
+        [[-2.5, -2.5], [2.5, -2.5]], \
+        [[-2.5, 2.5], [-2.5, 2.5]] \
         ]
-# LEFT WALL
+# CENTER Vertical
+# CENTER Horizontal
+# TOP WALL
+# BOTTOM WALL
 # RIGHT WALL
-# UP WALl
-# DOWN WALL
-# LEFT EYE
-# LEFT EYE
-# LEFT EYE
-# RIGHT EYE
-# RIGHT EYE
-# RIGHT EYE
-# LEFT MOUTH
-# RIGHT MOUTH
-# UP MOUTH
-# DOWN MOUTH
+# LEFT WALL
+# TOP LIMITS
+# BOTTOM LIMITS
+# RIGHT LIMITS
+# LEFT LIMITS
 
 def get_yaw(orientation_q):
     orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
