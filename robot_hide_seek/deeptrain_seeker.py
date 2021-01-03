@@ -1,3 +1,9 @@
+'''
+Adapted from https://github.com/vmayoral/basic_reinforcement_learning
+ 
+@author: Victor Mayoral Vilches <victor@erlerobotics.com>
+'''
+
 import gym
 import random
 import numpy as np
@@ -22,7 +28,7 @@ last10Scores = [0] * 10
 last10ScoresIndex = 0
 last10Filled = False
 
-deepQ = deepqlearn.DeepQ(11, 5, memorySize, discountFactor, learningRate, learnStart)
+deepQ = deepqlearn.DeepQ(11, 5, memorySize, discountFactor, learningRate, learnStart, './training_results/seeker')
 # deepQ.initNetworks([30,30,30])
 # deepQ.initNetworks([30,30])
 deepQ.initNetworks([300,300])
@@ -79,6 +85,7 @@ for epoch in range(epochs):
         t += 1
 
         if done:
+            deepQ.saveModel()
             last10Scores[last10ScoresIndex] = t
             last10ScoresIndex += 1
             if last10ScoresIndex >= 10:

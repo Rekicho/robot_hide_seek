@@ -6,9 +6,10 @@ Adapted from https://github.com/vmayoral/basic_reinforcement_learning
 
 import random
 import numpy as np
+import os
 
 from keras.models import Sequential
-from keras import optimizers
+from keras import optimizers, callbacks
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
@@ -74,7 +75,7 @@ class DeepQ:
         DQN:
             target = reward(s,a) + gamma * max(Q(s')
     """
-    def __init__(self, inputs, outputs, memorySize, discountFactor, learningRate, learnStart):
+    def __init__(self, inputs, outputs, memorySize, discountFactor, learningRate, learnStart, save_path = None):
         """
         Parameters:
             - inputs: input size
@@ -83,6 +84,7 @@ class DeepQ:
             - discountFactor: the discount factor (gamma)
             - learningRate: learning rate
             - learnStart: steps to happen before for learning. Set to 128
+            - save_path: path to load & save models weights
         """
         self.input_size = inputs
         self.output_size = outputs
@@ -90,12 +92,27 @@ class DeepQ:
         self.discountFactor = discountFactor
         self.learnStart = learnStart
         self.learningRate = learningRate
+        self.save_path = save_path
    
     def initNetworks(self, hiddenLayers):
         model = self.createModel(self.input_size, self.output_size, hiddenLayers, "relu", self.learningRate)
+
+        try:
+            model.load_weights(os.path.join(self.save_path, "model/model"))
+            print("Loaded model weights.")
+        except:
+            print("Could not load model weights.")
+
         self.model = model
 
         targetModel = self.createModel(self.input_size, self.output_size, hiddenLayers, "relu", self.learningRate)
+
+        try:
+            targetModel.load_weights(os.path.join(self.save_path, "targetModel/targetModel"))
+            print("Loaded target model weights.")
+        except:
+            print("Could not load target model weights.")
+
         self.targetModel = targetModel
 
     def createRegularizedModel(self, inputs, outputs, hiddenLayers, activationType, learningRate):
@@ -283,3 +300,9 @@ class DeepQ:
                     X_batch = np.append(X_batch, np.array([newState.copy()]), axis=0)
                     Y_batch = np.append(Y_batch, np.array([[reward]*self.output_size]), axis=0)
             self.model.fit(X_batch, Y_batch, batch_size = len(miniBatch), epochs=1, verbose=0)
+
+    def saveModel(self):
+        if not self.save_path is None:
+            print("Saving weights...")
+            self.model.save_weights(os.path.join(self.save_path, "model/model"))
+            self.targetModel.save_weights(os.path.join(self.save_path, "targetModel/targetModel"))
