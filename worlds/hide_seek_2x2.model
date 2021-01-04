@@ -45,20 +45,20 @@
 
     <include>
       <uri>model://hider_0</uri>
-      <pose>1 1 0 0 0 -2.3565</pose>
+      <pose>1 1 0 0 0 0.7855</pose>
     </include>
     <include>
       <uri>model://hider_1</uri>
-      <pose>-1 -1 0 0 0 0.7855</pose>
+      <pose>-1 -1 0 0 0 -2.3565</pose>
     </include>
     
     <include>
       <uri>model://seeker_0</uri>
-      <pose>1 -1 0 0 0 2.3565</pose>
+      <pose>1 -1 0 0 0 -0.7855</pose>
     </include>
     <include>
       <uri>model://seeker_1</uri>
-      <pose>-1 1 0 0 0 -0.7855</pose>
+      <pose>-1 1 0 0 0 2.3565</pose>
     </include>
 
     <!-- LEFT SIDE -->

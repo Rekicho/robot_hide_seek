@@ -104,6 +104,6 @@ for epoch in range(epochs):
         if stepCounter % updateTargetNetwork == 0:
             deepQ.updateTargetNetwork()
 
-    explorationRate *= 0.995
+    explorationRate *= 0.999
     # explorationRate -= (2.0/epochs)
     explorationRate = max(0.05, explorationRate)
