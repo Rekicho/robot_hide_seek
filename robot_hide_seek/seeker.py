@@ -10,6 +10,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
 from robot_hide_seek.utils import *
+from robot_hide_seek import deepqlearn
 
 class Seeker(Node):
     follow_id = inf
@@ -65,6 +66,10 @@ class Seeker(Node):
             self.lidar_callback,
             qos_profile_sensor_data
         )
+
+        if GAME_USES_TRAINING:
+            self.deepQ = deepqlearn.DeepQ(11, 5, save_path='./training_results/hider')
+            self.deepQ.initPlay()
 
     def reset(self):
         self.follow_id = inf
@@ -127,6 +132,36 @@ class Seeker(Node):
 
     def lidar_callback(self, msg):
         if self.time < SECONDS_SEEKER_START or self.gameover:
+            return
+
+        if GAME_USES_TRAINING:
+            observation = [msg.ranges[0], msg.ranges[45], msg.ranges[90], msg.ranges[135], msg.ranges[180], msg.ranges[225], msg.ranges[270], msg.ranges[315]]
+
+            observation.append(self.follow_angle)
+            observation.append(self.follow_distance)
+            observation.append(self.time)
+
+            action = self.deepQ.predict(observation)
+            vel = Twist()
+
+            if action == 0: #Forward
+                vel.linear.x = HIDER_LINEAR_SPEED
+                vel.angular.z = 0.0
+            elif action == 1: #Rotate left
+                vel.linear.x = 0.0
+                vel.angular.z = ROBOT_ANGULAR_SPEED
+            elif action == 2: #Rotate right
+                vel.linear.x = 0.0
+                vel.angular.z = -ROBOT_ANGULAR_SPEED
+            elif action == 3: #Stop
+                vel.linear.x = 0.0
+                vel.angular.z = 0.0
+            elif action == 4: #Back
+                vel.linear.x = -HIDER_LINEAR_SPEED
+                vel.angular.z = 0.0
+            
+            self.vel_pub.publish(vel)
+
             return
 
         min_range = msg.ranges[0]

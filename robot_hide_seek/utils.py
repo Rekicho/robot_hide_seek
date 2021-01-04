@@ -4,6 +4,8 @@ from transformations import euler_from_quaternion
 N_HIDERS = 2
 N_SEEKERS = 2
 
+GAME_USES_TRAINING = True
+
 # Algortihm Parameters
 ALPHA = 0.1
 GAMMA = 0.8

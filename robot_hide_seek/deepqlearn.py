@@ -15,9 +15,18 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.regularizers import l2
 
+import tensorflow as tf
+
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.compat.v1.Session(config=config)
+
 # import os
 # os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
 # import theano
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 class Memory:
     """
@@ -75,7 +84,7 @@ class DeepQ:
         DQN:
             target = reward(s,a) + gamma * max(Q(s')
     """
-    def __init__(self, inputs, outputs, memorySize, discountFactor, learningRate, learnStart, save_path = None):
+    def __init__(self, inputs, outputs, memorySize=100000, discountFactor=0.99, learningRate=0.00025, learnStart=0, save_path=None):
         """
         Parameters:
             - inputs: input size
@@ -150,7 +159,6 @@ class DeepQ:
             model.add(Activation("linear"))
         optimizer = optimizers.RMSprop(lr=learningRate, rho=0.9, epsilon=1e-06)
         model.compile(loss="mse", optimizer=optimizer)
-        model.summary()
         return model
 
     def createModel(self, inputs, outputs, hiddenLayers, activationType, learningRate):
@@ -177,7 +185,6 @@ class DeepQ:
             model.add(Activation("linear"))
         optimizer = optimizers.RMSprop(lr=learningRate, rho=0.9, epsilon=1e-06)
         model.compile(loss="mse", optimizer=optimizer)
-        model.summary()
         return model
 
     def printNetwork(self):
@@ -206,6 +213,7 @@ class DeepQ:
     def getQValues(self, state):
         state = np.array(state)
         predicted = self.model.predict(state.reshape(1,len(state)))
+        print(predicted)
         return predicted[0]
 
     def getTargetQValues(self, state):
@@ -306,3 +314,19 @@ class DeepQ:
             print("Saving weights...")
             self.model.save_weights(os.path.join(self.save_path, "model/model"))
             self.targetModel.save_weights(os.path.join(self.save_path, "targetModel/targetModel"))
+
+    def initPlay(self, hiddenLayers = [300,300]):
+        model = self.createModel(self.input_size, self.output_size, hiddenLayers, "relu", self.learningRate)
+
+        try:
+            model.load_weights(os.path.join(self.save_path, "model/model"))
+            print("Loaded model weights.")
+        except:
+            print("Could not load model weights.")
+
+        self.model = model
+
+    def predict(self, observation):
+        observation = np.array(observation)
+        predicted = self.model.predict(observation.reshape(1,len(observation)))
+        return np.argmax(predicted[0])
