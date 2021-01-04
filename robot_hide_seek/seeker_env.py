@@ -132,18 +132,18 @@ class SeekerEnv(gym.Env):
         if observation[4] != 0 or observation[3] >= GAME_TIME_LIMIT:
             done = True
 
-            if observation[4] > 0:
+            if observation[4] < 0:
                 reward = -10000
 
-            elif observation[4] < 0:
+            elif observation[4] > 0:
                 reward = 10000
 
         else:
             if observation[2] == math.inf:
-                reward = -20
+                reward = -100
 
             else:
-                reward = -observation[2]
+                reward = 10 - observation[2]
 
             reward -= (observation[3] / GAME_TIME_LIMIT) * TIME_REWARD
 

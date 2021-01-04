@@ -140,10 +140,10 @@ class HiderEnv(gym.Env):
 
         else:
             if observation[2] == math.inf:
-                reward = 20
+                reward = 0
 
             else:
-                reward = observation[2]
+                reward = - (10 - observation[2])
 
             reward += (observation[3] / GAME_TIME_LIMIT) * TIME_REWARD
 

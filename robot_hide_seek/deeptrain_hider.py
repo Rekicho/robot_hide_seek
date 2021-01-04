@@ -8,31 +8,37 @@ import gym
 import random
 import numpy as np
 import math
+import csv
 
 from robot_hide_seek import hider_env, deepqlearn
 from robot_hide_seek.utils import *
 
 env = gym.make('hiderEnv-v0')
 
-epochs = 1000000
-# steps = 100000
+epochs = 100000000
 updateTargetNetwork = 10
 explorationRate = 1
-minibatch_size = 1 #128
-learnStart = 0 #128
+minibatch_size = 1
+learnStart = 0
 learningRate = 0.00025
 discountFactor = 0.99
 memorySize = 100000
-
-last10Scores = [0] * 10
-last10ScoresIndex = 0
-last10Filled = False
 
 deepQ = deepqlearn.DeepQ(11, 5, memorySize, discountFactor, learningRate, learnStart, './training_results/hider')
 # deepQ.initNetworks([30,30,30])
 # deepQ.initNetworks([30,30])
 deepQ.initNetworks([300,300])
 
+def saveScores(scores):
+    csv_columns = ['epoch','average_reward','final_reward']
+    try:
+        with open('hiders.csv', 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+            for data in scores:
+                writer.writerow(data)
+    except IOError:
+        pass
 
 def round_observation(observation):
     res = []
@@ -49,7 +55,7 @@ def round_observation(observation):
 
     return np.array(res)
 
-
+scores = []
 stepCounter = 0
 
 # number of reruns
@@ -59,12 +65,13 @@ for epoch in range(epochs):
     for i, observation in enumerate(observations):
         observations[i] = round_observation(observation)
 
-    current_seeker = 0
+    current_hider = 0
     done = False
 
+    sum_reward = 0.0
     t = 0
     while not done:
-        qValues = deepQ.getQValues(observations[current_seeker])
+        qValues = deepQ.getQValues(observations[current_hider])
 
         action = deepQ.selectAction(qValues, explorationRate)
 
@@ -72,7 +79,7 @@ for epoch in range(epochs):
 
         newObservation = round_observation(newObservation)
 
-        deepQ.addMemory(observations[current_seeker], action, reward, newObservation, done)
+        deepQ.addMemory(observations[current_hider], action, reward, newObservation, done)
 
         if stepCounter >= learnStart:
             if stepCounter <= updateTargetNetwork:
@@ -80,21 +87,17 @@ for epoch in range(epochs):
             else:
                 deepQ.learnOnMiniBatch(minibatch_size, True)
 
-        observations[current_seeker] = newObservation
-        current_seeker = (current_seeker + 1) % N_SEEKERS
+        observations[current_hider] = newObservation
+        current_hider = (current_hider + 1) % N_HIDERS
         t += 1
+        sum_reward += reward
 
         if done:
             deepQ.saveModel()
-            last10Scores[last10ScoresIndex] = t
-            last10ScoresIndex += 1
-            if last10ScoresIndex >= 10:
-                last10Filled = True
-                last10ScoresIndex = 0
-            if not last10Filled:
-                print("Episode " + str(epoch) + " finished after {} timesteps".format(t+1))
-            else :
-                print("Episode " + str(epoch) + " finished after {} timesteps".format(t+1) + " last 10 average: " + str(sum(last10Scores)/len(last10Scores)))
+            sum_reward -= reward
+            scores.append({'epoch': epoch, 'average_reward': sum_reward/(t-1), 'final_reward': reward})
+            print("Episode " + str(epoch) + " finished after {} timesteps".format(t+1) + ". Average Reward: " + str(sum_reward/(t-1)))
+            saveScores(scores)
             break
 
         stepCounter += 1

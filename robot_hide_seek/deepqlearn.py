@@ -213,7 +213,6 @@ class DeepQ:
     def getQValues(self, state):
         state = np.array(state)
         predicted = self.model.predict(state.reshape(1,len(state)))
-        print(predicted)
         return predicted[0]
 
     def getTargetQValues(self, state):
