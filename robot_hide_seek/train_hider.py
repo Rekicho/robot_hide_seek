@@ -1,3 +1,7 @@
+'''
+Adapted from https://bitbucket.org/theconstructcore/drone_training/src/master/
+'''
+
 import gym
 from gym import wrappers
 

@@ -7,6 +7,7 @@ Adapted from https://github.com/vmayoral/basic_reinforcement_learning
 import random
 import numpy as np
 import os
+import math
 
 from keras.models import Sequential
 from keras import optimizers, callbacks
@@ -209,13 +210,28 @@ class DeepQ:
     def updateTargetNetwork(self):
         self.backupNetwork(self.model, self.targetModel)
 
+    def cleanInput(self, input):
+        for i in range(8):
+            if math.isinf(input[i]):
+                input[i] = 25
+
+        if math.isinf(input[8]):
+            input[8] = np.random.uniform(6.28, 12.56)
+
+        if math.isinf(input[9]):
+            input[9] = 25
+
+        return input
+
     # predict Q values for all the actions
     def getQValues(self, state):
+        state = self.cleanInput(state)
         state = np.array(state)
         predicted = self.model.predict(state.reshape(1,len(state)))
         return predicted[0]
 
     def getTargetQValues(self, state):
+        state = self.cleanInput(state)
         state = np.array(state)
         predicted = self.targetModel.predict(state.reshape(1,len(state)))
         return predicted[0]
@@ -326,6 +342,7 @@ class DeepQ:
         self.model = model
 
     def predict(self, observation):
+        observation = self.cleanInput(observation)
         observation = np.array(observation)
         predicted = self.model.predict(observation.reshape(1,len(observation)))
         return np.argmax(predicted[0])

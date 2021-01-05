@@ -145,7 +145,7 @@ class Seeker(Node):
             vel = Twist()
 
             if action == 0: #Forward
-                vel.linear.x = HIDER_LINEAR_SPEED
+                vel.linear.x = SEEKER_LINEAR_SPEED
                 vel.angular.z = 0.0
             elif action == 1: #Rotate left
                 vel.linear.x = 0.0
@@ -157,7 +157,7 @@ class Seeker(Node):
                 vel.linear.x = 0.0
                 vel.angular.z = 0.0
             elif action == 4: #Back
-                vel.linear.x = -HIDER_LINEAR_SPEED
+                vel.linear.x = -SEEKER_LINEAR_SPEED
                 vel.angular.z = 0.0
             
             self.vel_pub.publish(vel)

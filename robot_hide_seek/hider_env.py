@@ -1,3 +1,7 @@
+'''
+Adapted from https://github.com/vmayoral/basic_reinforcement_learning
+'''
+
 import rclpy
 from geometry_msgs.msg import Twist
 

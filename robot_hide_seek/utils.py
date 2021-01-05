@@ -4,7 +4,7 @@ from transformations import euler_from_quaternion
 N_HIDERS = 2
 N_SEEKERS = 2
 
-GAME_USES_TRAINING = False
+GAME_USES_TRAINING = True
 
 # Algortihm Parameters
 ALPHA = 0.1
@@ -31,8 +31,6 @@ MIN_DISTANCE = 0.35
 WEIGHT = 1
 DISTANCE_ENDGAME = 0.3
 GAME_TIME_LIMIT = 60
-TIME_REWARD = 10
-TIME_REWARD = 10
 TIME_REWARD = 10
 FOV_ANGLE = pi / 3
 
@@ -84,6 +82,7 @@ def orientation(p, q, r):
 
     return 1 if val > 0 else 2
 
+#Adapted from https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
 def doIntersect(p1, q1, p2, q2):
     o1 = orientation(p1, q1, p2) 
     o2 = orientation(p1, q1, q2) 

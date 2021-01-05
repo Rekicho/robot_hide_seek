@@ -1,3 +1,7 @@
+'''
+Adapted from https://bitbucket.org/theconstructcore/drone_training/src/master/
+'''
+
 import rclpy
 
 from std_srvs.srv._empty import Empty_Request

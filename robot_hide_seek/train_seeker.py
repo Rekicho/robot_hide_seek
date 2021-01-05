@@ -1,3 +1,7 @@
+'''
+Adapted from https://github.com/vmayoral/basic_reinforcement_learning
+'''
+
 import gym
 from gym import wrappers
 
