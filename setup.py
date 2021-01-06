@@ -6,7 +6,7 @@ package_name = 'robot_hide_seek'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='0.0.1',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -19,7 +19,7 @@ setup(
     zip_safe=True,
     maintainer='rekicho',
     maintainer_email='rekicho@todo.todo',
-    description='TODO: Package description',
+    description='Robotic game of Hide-and-Seek',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={

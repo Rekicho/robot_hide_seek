@@ -6,7 +6,7 @@ N_SEEKERS = 2
 
 GAME_USES_TRAINING = True
 
-# Algortihm Parameters
+# Q-Learn Parameters
 ALPHA = 0.1
 GAMMA = 0.8
 EPSILON = 0.9
@@ -16,6 +16,7 @@ NEPISODES = 1000
 # Environment Parameters
 RUNNING_STEP = 0.1
 
+# Game Constants
 START_MSG = 'START'
 GAMEOVER_MSG = 'GAMEOVER'
 POSITIONS_MSG_HEADER = 'POSITIONS'

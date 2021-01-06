@@ -22,10 +22,6 @@ config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.compat.v1.Session(config=config)
 
-# import os
-# os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
-# import theano
-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 

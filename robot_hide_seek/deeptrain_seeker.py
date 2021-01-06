@@ -25,8 +25,6 @@ discountFactor = 0.99
 memorySize = 100000
 
 deepQ = deepqlearn.DeepQ(11, 5, memorySize, discountFactor, learningRate, learnStart, './training_results/seeker')
-# deepQ.initNetworks([30,30,30])
-# deepQ.initNetworks([30,30])
 deepQ.initNetworks([300,300])
 
 def saveScores(scores):
@@ -105,5 +103,4 @@ for epoch in range(epochs):
             deepQ.updateTargetNetwork()
 
     explorationRate *= 0.999
-    # explorationRate -= (2.0/epochs)
     explorationRate = max(0.05, explorationRate)
