@@ -68,7 +68,7 @@ class Seeker(Node):
         )
 
         if GAME_USES_TRAINING:
-            self.deepQ = deepqlearn.DeepQ(11, 5, save_path='./training_results/hider')
+            self.deepQ = deepqlearn.DeepQ(11, 5, save_path='./training_results/seeker')
             self.deepQ.initPlay()
 
     def reset(self):

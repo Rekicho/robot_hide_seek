@@ -93,8 +93,15 @@ for epoch in range(epochs):
         if done:
             deepQ.saveModel()
             sum_reward -= reward
-            scores.append({'epoch': epoch, 'average_reward': sum_reward/(t-1), 'final_reward': reward})
-            print("Episode " + str(epoch) + " finished after {} timesteps".format(t+1) + ". Average Reward: " + str(sum_reward/(t-1)))
+
+            if t != 1:
+                scores.append({'epoch': epoch, 'average_reward': sum_reward/(t-1), 'final_reward': reward})
+                print("Episode " + str(epoch) + " finished after {} timesteps".format(t) + ". Average Reward: " + str(sum_reward/(t-1)))
+
+            else:
+                scores.append({'epoch': epoch, 'average_reward': sum_reward/t, 'final_reward': reward})
+                print("Episode " + str(epoch) + " finished after {} timesteps".format(t) + ". Average Reward: " + str(sum_reward/t))
+
             saveScores(scores)
             break
 
